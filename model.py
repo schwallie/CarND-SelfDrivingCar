@@ -74,8 +74,8 @@ def get_model():
 def generate_arrays(X_train, y_train):
     while 1:
         for ix in range(int(len(X_train) / config.BATCH_SIZE)):
-            imgs = [config.return_image(cv2.imread(f)) for f in
-                    X_train[ix * config.BATCH_SIZE:(ix + 1) * config.BATCH_SIZE]]
+            paths = X_train[ix * config.BATCH_SIZE:(ix + 1) * config.BATCH_SIZE]
+            imgs = [config.return_image(cv2.imread(f)) for f in paths]
             yield np.array(imgs), np.array(y_train[ix * config.BATCH_SIZE:(ix + 1) * config.BATCH_SIZE])
 
 
@@ -86,6 +86,7 @@ def train(data=None):
         X_train, X_validate, y_train, y_validate = load_data.return_validation()
     else:
         X_train, X_validate, y_train, y_validate = data[0], data[1], data[2], data[3]
+    X_validate = [config.return_image(cv2.imread(f)) for f in X_validate]
     print(model.summary())
     print("Loaded validation datasetset")
     print("Training..")

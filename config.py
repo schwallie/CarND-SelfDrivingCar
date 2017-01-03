@@ -20,7 +20,7 @@ def return_image(img):
     assert crop_img.shape[1] == IMAGE_WIDTH
     img = cv2.cvtColor(crop_img, cv2.COLOR_BGR2RGB)
     img = np.array(img)/255. - 0.5
-    return img
+    return np.float32(img)
 
 
 def normalize_image(image_set):

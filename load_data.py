@@ -18,7 +18,6 @@ def load_data(path='data/'):
         arr = ['data/{0}'.format(f) for f in vals]
         X_data.extend(arr)
         y_data.extend(drive_df['{0}_steering'.format(cam_type)].values)
-    X_data = np.float32(X_data)
     y_data = np.float32(y_data)
     return X_data, y_data
 
