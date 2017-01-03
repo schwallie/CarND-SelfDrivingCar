@@ -107,3 +107,5 @@ def save_model(model):
     json_string = model.to_json()
     model.save_weights('model.h5')
     json.dump(json_string, open('model.json', 'w'))
+
+
