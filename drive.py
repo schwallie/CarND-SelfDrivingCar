@@ -33,7 +33,6 @@ def telemetry(sid, data):
     image_array = np.asarray(image)
     image_array = config.return_image(image_array)
     cv2.imwrite('Saved_Img.png', image_array)
-    # image_array = image_array/255. - 0.5
     image_array = image_array[None, :, :, :]
     # This model currently assumes that the features of the model are just the images. Feel free to change this.
     steering_angle = float(saved_model.predict(image_array, batch_size=1))

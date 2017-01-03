@@ -6,6 +6,7 @@ from keras.layers import Convolution2D, ELU
 from keras.layers import Dense, Flatten
 from keras.layers.core import Lambda
 from keras.models import Sequential
+
 import config
 import load_data
 
@@ -34,7 +35,8 @@ def normal_init(shape, name=None):
 def steering_net():
     # p = .5
     model = Sequential()
-    model.add(Convolution2D(24, 5, 5, init='he_normal', subsample=(2, 2), name='conv1_1', input_shape=(108, 320, 3)))  #
+    model.add(Convolution2D(24, 5, 5, init='he_normal', subsample=(2, 2), name='conv1_1',
+                            input_shape=(config.IMAGE_HEIGHT, config.IMAGE_WIDTH, 3)))  #
     model.add(ELU())
     model.add(Convolution2D(36, 5, 5, init='he_normal', subsample=(2, 2), name='conv2_1'))  #
     model.add(ELU())
@@ -75,10 +77,13 @@ def generate_arrays(X_train, y_train):
                 y_train[ix * config.BATCH_SIZE:(ix + 1) * config.BATCH_SIZE])
 
 
-def train():
+def train(data=None):
     model = get_model()
     print("Loaded model")
-    X_train, X_validate, y_train, y_validate = load_data.return_validation()
+    if data is None:
+        X_train, X_validate, y_train, y_validate = load_data.return_validation()
+    else:
+        X_train, X_validate, y_train, y_validate = data[0], data[1], data[2], data[3]
     print(model.summary())
     print("Loaded validation datasetset")
     print("Training..")

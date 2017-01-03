@@ -20,7 +20,6 @@ def load_data(path='data/'):
         y_data.extend(drive_df['{0}_steering'.format(cam_type)].values)
     X_data = np.float32(X_data)
     y_data = np.float32(y_data)
-    # X_data = X_data/255. - 0.5
     return X_data, y_data
 
 def return_validation():
