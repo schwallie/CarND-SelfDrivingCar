@@ -30,11 +30,11 @@ def telemetry(sid, data):
     image = Image.open(BytesIO(base64.b64decode(imgString)))
     # image = np.float32(cv2.resize(cv2.imread(image, 1)[32:140, 0:320], (200, 66))) / 255.0
     image_array = np.asarray(image)
+    image_array = cv2.cvtColor(image_array, cv2.COLOR_BGR2RGB)
     img_shape = image_array.shape
-    print(img_shape)
     image_array = image_array[int(img_shape[0]/5):img_shape[0]-20, 0:img_shape[1]]
+    image_array = image_array/255. - 0.5
     cv2.imwrite('Saved_Img.png', image_array)
-    print(image_array.shape)
     transformed_image_array = image_array[None, :, :, :]
     # transformed_image_array = cv2.resize(transformed_image_array, (200, 66))
     # print(transformed_image_array.shape)
@@ -44,7 +44,6 @@ def telemetry(sid, data):
     throttle = 0.2
     print('Angle: {0}'.format(round(steering_angle, 4)))
     send_control(steering_angle, throttle)
-    raise
 
 
 @sio.on('connect')

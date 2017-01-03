@@ -12,7 +12,7 @@ def load_data(path='data/'):
     drive_df = drive_df.rename(columns={'steering': 'center_steering'})
     X_data = []
     y_data = []
-    for cam_type in ['center']: #'left', 'right'
+    for cam_type in ['center', 'left', 'right']:
         drive_df[cam_type] = drive_df[cam_type].str.strip()
         vals = drive_df[cam_type].values
         arr = [return_image(f) for f in vals]
@@ -20,8 +20,7 @@ def load_data(path='data/'):
         y_data.extend(drive_df['{0}_steering'.format(cam_type)].values)
     X_data = np.float32(X_data)
     y_data = np.float32(y_data)
-    X_data /= 255.
-    X_data -= 0.5
+    X_data = X_data/255. - 0.5
     return X_data, y_data
 
 
