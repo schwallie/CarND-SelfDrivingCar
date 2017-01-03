@@ -93,7 +93,7 @@ def train():
 
 def load_model():
     model = steering_net()
-    model.load_weights('full_model.00-9.882.h5')
+    model.load_weights('full_model.01-0.012.h5')
     model.compile(loss='mse', optimizer=Adam(lr=1e-5))
     return model
 

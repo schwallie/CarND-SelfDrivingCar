@@ -20,7 +20,7 @@ prev_image_array = None
 @sio.on('telemetry')
 def telemetry(sid, data):
     # The current steering angle of the car
-    steering_angle = data["steering_angle"]
+    prev_steering_angle = data["steering_angle"]
     # The current throttle of the car
     throttle = data["throttle"]
     # The current speed of the car
@@ -30,8 +30,11 @@ def telemetry(sid, data):
     image = Image.open(BytesIO(base64.b64decode(imgString)))
     # image = np.float32(cv2.resize(cv2.imread(image, 1)[32:140, 0:320], (200, 66))) / 255.0
     image_array = np.asarray(image)
-    image_array = image_array[32:140, 0:320]
-    image_array = cv2.resize(image_array, (200, 66))
+    img_shape = image_array.shape
+    print(img_shape)
+    image_array = image_array[int(img_shape[0]/5):img_shape[0]-20, 0:img_shape[1]]
+    cv2.imwrite('Saved_Img.png', image_array)
+    print(image_array.shape)
     transformed_image_array = image_array[None, :, :, :]
     # transformed_image_array = cv2.resize(transformed_image_array, (200, 66))
     # print(transformed_image_array.shape)
@@ -41,6 +44,7 @@ def telemetry(sid, data):
     throttle = 0.2
     print('Angle: {0}'.format(round(steering_angle, 4)))
     send_control(steering_angle, throttle)
+    raise
 
 
 @sio.on('connect')
