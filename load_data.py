@@ -15,7 +15,7 @@ def load_data(path='data/'):
     for cam_type in ['center', 'left', 'right']:
         drive_df[cam_type] = drive_df[cam_type].str.strip()
         vals = drive_df[cam_type].values
-        arr = [config.return_image(cv2.imread('data/{0}'.format(f), 1)) for f in vals]
+        arr = ['data/{0}'.format(f) for f in vals]
         X_data.extend(arr)
         y_data.extend(drive_df['{0}_steering'.format(cam_type)].values)
     X_data = np.float32(X_data)

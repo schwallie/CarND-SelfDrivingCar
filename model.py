@@ -1,3 +1,4 @@
+import cv2
 import numpy as np
 import tensorflow as tf
 from keras import backend as K
@@ -73,8 +74,9 @@ def get_model():
 def generate_arrays(X_train, y_train):
     while 1:
         for ix in range(int(len(X_train) / config.BATCH_SIZE)):
-            yield np.array(X_train[ix * config.BATCH_SIZE:(ix + 1) * config.BATCH_SIZE]), np.array(
-                y_train[ix * config.BATCH_SIZE:(ix + 1) * config.BATCH_SIZE])
+            imgs = [config.return_image(cv2.imread(f)) for f in
+                    X_train[ix * config.BATCH_SIZE:(ix + 1) * config.BATCH_SIZE]]
+            yield np.array(imgs), np.array(y_train[ix * config.BATCH_SIZE:(ix + 1) * config.BATCH_SIZE])
 
 
 def train(data=None):
