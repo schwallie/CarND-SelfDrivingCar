@@ -1,5 +1,6 @@
 import numpy as np
 import config
+import cv2
 import pandas as pd
 from sklearn.model_selection import train_test_split
 
@@ -14,12 +15,12 @@ def load_data(path='data/'):
     for cam_type in ['center']: # , 'left', 'right']:
         drive_df[cam_type] = drive_df[cam_type].str.strip()
         vals = drive_df[cam_type].values
-        arr = [config.return_image(f) for f in vals]
+        arr = [config.return_image(cv2.imread('data/{0}'.format(f), 1)) for f in vals]
         X_data.extend(arr)
         y_data.extend(drive_df['{0}_steering'.format(cam_type)].values)
     X_data = np.float32(X_data)
     y_data = np.float32(y_data)
-    X_data = X_data/255. - 0.5
+    # X_data = X_data/255. - 0.5
     return X_data, y_data
 
 def return_validation():

@@ -1,6 +1,6 @@
-from keras.optimizers import Adam
 import cv2
 import numpy as np
+from keras.optimizers import Adam
 
 IMAGE_HEIGHT = 108
 IMAGE_WIDTH = 320
@@ -10,12 +10,11 @@ LOSS = 'mse'
 NB_EPOCH = 10
 BATCH_SIZE = 256
 
-def return_image(f):
-    path = 'data/{0}'.format(f)
-    img = cv2.imread(path, 1)
+
+def return_image(img):
     # Take out the dash and horizon
     img_shape = img.shape
-    crop_img = img[int(img_shape[0]/5):img_shape[0]-20, 0:img_shape[1]]
+    crop_img = img[int(img_shape[0] / 5):img_shape[0] - 20, 0:img_shape[1]]
     # resize_img = cv2.resize(crop_img, (320, 108), interpolation=cv2.INTER_AREA)
     img = cv2.cvtColor(crop_img, cv2.COLOR_BGR2RGB)
     return np.array(img)
