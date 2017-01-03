@@ -1,6 +1,4 @@
 import numpy as np
-import config
-import cv2
 import pandas as pd
 from sklearn.model_selection import train_test_split
 
