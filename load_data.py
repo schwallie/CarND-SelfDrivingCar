@@ -12,7 +12,7 @@ def load_data(path='data/'):
     drive_df = drive_df.rename(columns={'steering': 'center_steering'})
     X_data = []
     y_data = []
-    for cam_type in ['center', 'left', 'right']:
+    for cam_type in ['center']: # , 'left', 'right']:
         drive_df[cam_type] = drive_df[cam_type].str.strip()
         vals = drive_df[cam_type].values
         arr = [return_image(f) for f in vals]

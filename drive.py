@@ -60,10 +60,6 @@ def send_control(steering_angle, throttle):
 
 
 if __name__ == '__main__':
-    parser = argparse.ArgumentParser(description='Remote Driving')
-    parser.add_argument('model', type=str,
-                        help='Path to model definition json. Model weights should be on the same path.')
-    args = parser.parse_args()
     import model
     model = model.return_saved_model_with_weights()
     # wrap Flask application with engineio's middleware
