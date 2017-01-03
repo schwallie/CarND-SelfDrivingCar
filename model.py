@@ -48,18 +48,18 @@ def steering_net():
     model.add(Convolution2D(64, 3, 3, init='he_normal', subsample=(1, 1), name='conv4_2'))  #
     model.add(ELU())
     model.add(Flatten())
-    model.add(Dense(1164, init='he_normal', name="dense_0"))  #
+    model.add(Dense(1164, init='he_normal', name="dense_1164"))  #
     model.add(ELU())
     # model.add(Dropout(p))
-    model.add(Dense(100, init='he_normal', name="dense_1"))  #
+    model.add(Dense(100, init='he_normal', name="dense_100"))  #
     model.add(ELU())
     # model.add(Dropout(p))
-    model.add(Dense(50, init='he_normal', name="dense_2"))  #
+    model.add(Dense(50, init='he_normal', name="dense_50"))  #
     model.add(ELU())
     # model.add(Dropout(p))
-    model.add(Dense(10, init='he_normal', name="dense_3"))  #
+    model.add(Dense(10, init='he_normal', name="dense_10"))  #
     model.add(ELU())
-    model.add(Dense(1, init='he_normal', name="dense_4"))  #
+    model.add(Dense(1, init='he_normal', name="dense_1"))  #
     model.add(Lambda(atan_layer, output_shape=atan_layer_shape, name="atan_0"))
 
     return model
