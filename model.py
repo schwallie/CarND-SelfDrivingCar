@@ -6,8 +6,7 @@ from keras.layers import Convolution2D, ELU
 from keras.layers import Dense, Flatten
 from keras.layers.core import Lambda
 from keras.models import Sequential
-from keras.optimizers import Adam
-
+import config
 import load_data
 
 
@@ -65,15 +64,15 @@ def steering_net():
 
 def get_model():
     model = steering_net()
-    model.compile(loss='mse', optimizer='Adam')
+    model.compile(loss=config.LOSS, optimizer=config.OPTIMIZER)
     return model
 
 
-def generate_arrays(X_train, y_train, batch_size):
+def generate_arrays(X_train, y_train):
     while 1:
-        for ix in range(int(len(X_train) / batch_size)):
-            yield np.array(X_train[ix * batch_size:(ix + 1) * batch_size]), np.array(
-                y_train[ix * batch_size:(ix + 1) * batch_size])
+        for ix in range(int(len(X_train) / config.BATCH_SIZE)):
+            yield np.array(X_train[ix * config.BATCH_SIZE:(ix + 1) * config.BATCH_SIZE]), np.array(
+                y_train[ix * config.BATCH_SIZE:(ix + 1) * config.BATCH_SIZE])
 
 
 def train():
@@ -85,16 +84,16 @@ def train():
     print("Training..")
     checkpoint_path = "full_model.{epoch:02d}-{val_loss:.3f}.h5"
     checkpoint = ModelCheckpoint(checkpoint_path, verbose=1, save_best_only=False, save_weights_only=False, mode='auto')
-    model.fit_generator(generate_arrays(X_train, y_train, 256),
+    model.fit_generator(generate_arrays(X_train, y_train),
                         validation_data=(np.asarray(X_validate), np.asarray(y_validate)),
                         samples_per_epoch=len(X_train),
-                        nb_epoch=10, verbose=1, callbacks=[checkpoint])
+                        nb_epoch=config.NB_EPOCH, verbose=1, callbacks=[checkpoint])
 
 
-def load_model():
+def load_saved_model(path='full_model.03-0.011.h5'):
     model = steering_net()
-    model.load_weights('full_model.01-0.012.h5')
-    model.compile(loss='mse', optimizer=Adam(lr=1e-5))
+    model.load_weights(path)
+    model.compile(loss=config.LOSS, optimizer=config.OPTIMIZER)
     return model
 
 
@@ -103,17 +102,3 @@ def save_model(model):
     json_string = model.to_json()
     model.save_weights('model.h5')
     json.dump(json_string, open('model.json', 'w'))
-
-
-def return_saved_model_with_weights():
-    model = steering_net()
-    model.load_weights('model.h5')
-    model.compile(loss='mse', optimizer=Adam(lr=1e-5))
-    return model
-
-
-    #######
-    #
-    # TODO: Try taking out the override intitilization to train and then try the drive.py again
-    #
-    #######
