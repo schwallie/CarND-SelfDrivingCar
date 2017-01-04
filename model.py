@@ -70,7 +70,7 @@ def train(data=None):
     print(model.summary())
     print("Loaded validation datasetset")
     print("Training..")
-    checkpoint_path = "model_66x200-{epoch:02d}-{val_loss:.3f}.h5"
+    checkpoint_path = "model_64x64-{epoch:02d}-{val_loss:.3f}.h5"
     checkpoint = ModelCheckpoint(checkpoint_path, verbose=1, save_best_only=False, save_weights_only=False, mode='auto')
     model.fit_generator(generate_arrays(X_train, y_train),
                         validation_data=(np.asarray(X_validate), np.asarray(y_validate)),
