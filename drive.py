@@ -35,7 +35,7 @@ def telemetry(sid, data):
     cv2.imwrite('Saved_Img.png', image_array)
     image_array = image_array[None, :, :, :]
     # This model currently assumes that the features of the model are just the images. Feel free to change this.
-    steering_angle = float(saved_model.predict(image_array, batch_size=1))
+    steering_angle = float(saved_model.predict(image_array, batch_size=1)) *.8
     # The driving model currently just outputs a constant throttle. Feel free to edit this.
     throttle = 0.2
     print('Angle: {0}'.format(round(steering_angle, 4)))
