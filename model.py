@@ -1,19 +1,22 @@
+import math
+
 import cv2
 import numpy as np
 from keras.callbacks import ModelCheckpoint
 from keras.layers import Convolution2D, ELU
 from keras.layers import Dense, Flatten
-from keras.layers.core import Lambda
+from keras.layers.core import Lambda, Dropout
 from keras.models import Sequential
 
 import config
 import load_data
 
+
 def steering_net():
-    # p = .5
+    p = .5
     model = Sequential()
     # Vivek, color space conversion layer so the model automatically figures out the best color space
-    model.add(Lambda(lambda x: x / 127.5 - .5,
+    model.add(Lambda(lambda x: x / 255. - .5,
                      input_shape=(config.IMAGE_HEIGHT, config.IMAGE_WIDTH, 3)))
     model.add(Convolution2D(3, 1, 1, border_mode='same', name='color_conv'))
     model.add(Convolution2D(24, 5, 5, init='he_normal', subsample=(2, 2), name='conv1'))
@@ -35,12 +38,10 @@ def steering_net():
     # model.add(Dropout(p))
     model.add(Dense(50, init='he_normal', name="dense_50"))  #
     model.add(ELU())
-    # model.add(Dropout(p))
+    model.add(Dropout(p))
     model.add(Dense(10, init='he_normal', name="dense_10"))  #
     model.add(ELU())
     model.add(Dense(1, init='he_normal', name="dense_1"))  #
-    # model.add(Lambda(atan_layer, output_shape=atan_layer_shape, name="atan_0"))
-
     return model
 
 
@@ -52,7 +53,7 @@ def get_model():
 
 def generate_arrays(X_train, y_train):
     while 1:
-        for ix in range(int(len(X_train) / config.BATCH_SIZE)):
+        for ix in range(math.floor(len(X_train) / config.BATCH_SIZE)):
             paths = X_train[ix * config.BATCH_SIZE:(ix + 1) * config.BATCH_SIZE]
             imgs = [config.return_image(cv2.imread(f)) for f in paths]
             yield np.array(imgs), np.array(y_train[ix * config.BATCH_SIZE:(ix + 1) * config.BATCH_SIZE])
@@ -73,7 +74,7 @@ def train(data=None):
     checkpoint = ModelCheckpoint(checkpoint_path, verbose=1, save_best_only=False, save_weights_only=False, mode='auto')
     model.fit_generator(generate_arrays(X_train, y_train),
                         validation_data=(np.asarray(X_validate), np.asarray(y_validate)),
-                        samples_per_epoch=len(X_validate)*5,
+                        samples_per_epoch=len(X_validate) * 5,
                         nb_epoch=config.NB_EPOCH, verbose=1, callbacks=[checkpoint])
 
 
@@ -89,5 +90,3 @@ def save_model(model):
     json_string = model.to_json()
     model.save_weights('model.h5')
     json.dump(json_string, open('model.json', 'w'))
-
-

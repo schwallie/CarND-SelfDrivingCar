@@ -1,5 +1,6 @@
 import cv2
 import numpy as np
+import pandas as pd
 from keras.optimizers import Adam
 
 IMAGE_HEIGHT_CROP = 108
@@ -7,8 +8,8 @@ IMAGE_WIDTH_CROP = 320
 IMAGE_HEIGHT = 64
 IMAGE_WIDTH = 64
 # (200, 66) <-- Original NVIDIA Paper
-IMAGE_WIDTH = 200
-IMAGE_HEIGHT = 66
+# IMAGE_WIDTH = 200
+# IMAGE_HEIGHT = 66
 LR = 1e-4
 OPTIMIZER = Adam(lr=LR)
 LOSS = 'mse'
@@ -27,3 +28,14 @@ def return_image(img):
     # img = np.array(img)/255. - 0.5
     img = (cv2.resize(img, (IMAGE_WIDTH, IMAGE_HEIGHT), interpolation=cv2.INTER_AREA))
     return np.float32(img)
+
+def flip_image():
+    pass
+
+def add_flipped_images(path = 'data/altered_drive_df.csv'):
+    drive_df = pd.read_csv(path)
+    for idx, row in drive_df.iterrows():
+        rnd = np.random.randint(2)
+        if rnd == 1:
+            # Flip and created a new image
+            pass
