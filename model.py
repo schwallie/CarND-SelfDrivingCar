@@ -18,7 +18,7 @@ def steering_net():
     # Vivek, color space conversion layer so the model automatically figures out the best color space
     model.add(Lambda(lambda x: x / 255. - .5,
                      input_shape=(config.IMAGE_HEIGHT, config.IMAGE_WIDTH, 3)))
-    model.add(Convolution2D(3, 1, 1, border_mode='same', name='color_conv'))
+    # model.add(Convolution2D(3, 1, 1, border_mode='same', name='color_conv'))
     # Subsample == stride
     # keras.layers.convolutional.Convolution2D(nb_filter, nb_row, nb_col, border_mode='valid')
     model.add(Convolution2D(24, 5, 5, init='he_normal', subsample=(2, 2), name='conv1'))
@@ -72,7 +72,7 @@ def train(data=None):
     print(model.summary())
     print("Loaded validation datasetset")
     print("Training..")
-    checkpoint_path = "model_no_extra_1164-{epoch:02d}-{val_loss:.3f}.h5"
+    checkpoint_path = "model_1164_no_3x1x1-{epoch:02d}-{val_loss:.3f}.h5"
     checkpoint = ModelCheckpoint(checkpoint_path, verbose=1, save_best_only=False, save_weights_only=False, mode='auto')
     model.fit_generator(generate_arrays(X_train, y_train),
                         validation_data=(np.asarray(X_validate), np.asarray(y_validate)),
