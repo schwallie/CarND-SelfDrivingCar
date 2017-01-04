@@ -29,14 +29,16 @@ def return_image(img):
     img = (cv2.resize(img, (IMAGE_WIDTH, IMAGE_HEIGHT), interpolation=cv2.INTER_AREA))
     return np.float32(img)
 
-def flip_image():
-    pass
+def create_altered_drive_df():
+    drive_df = pd.read_csv('data/driving_log.csv')
+    drive_df = drive_df[drive_df['throttle'] > .25]
+    drive_df.to_csv('data/altered_driving_log.csv')
 
-def add_flipped_images(path = 'data/altered_drive_df.csv'):
+def add_flipped_images(path = 'data/altered_driving_log.csv'):
     drive_df = pd.read_csv(path)
     maxidx = max(drive_df.index)
     addition = {}
-    for idx, row in drive_df.iterrows():
+    for idx, row in drive_df[0:10].iterrows():
         rnd = np.random.randint(2)
         if rnd == 1:
             maxidx += 1
@@ -45,10 +47,11 @@ def add_flipped_images(path = 'data/altered_drive_df.csv'):
             new_path = 'data/IMG/FLIPPED_{0}'.format(row['center'].split('/')[-1])
             img = cv2.imread(img_path)
             img = np.array(img)
-            print(img)
             img = cv2.flip(img, 1)
             cv2.imwrite(new_path, img)
             steer = -row['steering']
             addition[maxidx] = {'center': new_path, 'steering': steer}
-    drive_df = pd.concat([drive_df, pd.DataFrame(addition)])
+    new_df = pd.DataFrame.from_dict(addition, orient='index')
+    print(new_df)
+    drive_df = pd.concat([drive_df, new_df])
     drive_df.to_csv(path)
