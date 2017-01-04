@@ -7,6 +7,8 @@ IMAGE_HEIGHT_CROP = 108
 IMAGE_WIDTH_CROP = 320
 IMAGE_HEIGHT = 64
 IMAGE_WIDTH = 64
+THROTTLE_ADJUSTMENT = 1
+AUTONOMOUS_THROTTLE = .2
 # (200, 66) <-- Original NVIDIA Paper
 # IMAGE_WIDTH = 200
 # IMAGE_HEIGHT = 66
@@ -55,3 +57,6 @@ def add_flipped_images(path = 'data/altered_driving_log.csv'):
     print(new_df)
     drive_df = pd.concat([drive_df, new_df])
     drive_df.to_csv(path)
+
+def create_and_train_with_altered_images():
+    import model

@@ -29,15 +29,14 @@ def telemetry(sid, data):
     # The current image from the center camera of the car
     imgString = data["image"]
     image = Image.open(BytesIO(base64.b64decode(imgString)))
-    # image = np.float32(cv2.resize(cv2.imread(image, 1)[32:140, 0:320], (200, 66))) / 255.0
     image_array = np.asarray(image)
+    # Preprocessing
     image_array = config.return_image(image_array)
-    cv2.imwrite('Saved_Img.png', image_array)
     image_array = image_array[None, :, :, :]
     # This model currently assumes that the features of the model are just the images. Feel free to change this.
-    steering_angle = float(saved_model.predict(image_array, batch_size=1)) *.8
+    steering_angle = float(saved_model.predict(image_array, batch_size=1)) * config.THROTTLE_ADJUSTMENT
     # The driving model currently just outputs a constant throttle. Feel free to edit this.
-    throttle = 0.2
+    throttle = config.AUTONOMOUS_THROTTLE
     print('Angle: {0}'.format(round(steering_angle, 4)))
     send_control(steering_angle, throttle)
 

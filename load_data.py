@@ -6,6 +6,7 @@ from sklearn.model_selection import train_test_split
 def load_data(path='data/driving_log.csv'):  # altered_driving_log.csv
     drive_df = pd.read_csv(path)
     # TODO: Try .08 instead of .25
+    drive_df = drive_df[drive_df['throttle'] > .25]
     # drive_df['left_steering'] = drive_df['steering'] + .08
     # drive_df['right_steering'] = drive_df['steering'] - .08
     drive_df = drive_df.rename(columns={'steering': 'center_steering'})
