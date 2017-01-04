@@ -48,8 +48,8 @@ def steering_net():
 
     model = Sequential()
     model.add(Lambda(lambda x: x / 127.5 - 1.,
-                     input_shape=(ch, row, col),
-                     output_shape=(ch, row, col)))
+                     input_shape=(config.IMAGE_HEIGHT, config.IMAGE_WIDTH, 3),
+                     output_shape=(config.IMAGE_HEIGHT, config.IMAGE_WIDTH, 3)))
     model.add(Convolution2D(16, 8, 8, subsample=(4, 4), border_mode="same"))
     model.add(ELU())
     model.add(Convolution2D(32, 5, 5, subsample=(2, 2), border_mode="same"))
@@ -93,7 +93,7 @@ def train(data=None, path='data/driving_log.csv', checkpoint_path="brand_new_mod
     checkpoint = ModelCheckpoint(checkpoint_path, verbose=1, save_best_only=False, save_weights_only=False, mode='auto')
     model.fit_generator(generate_arrays(X_train, y_train),
                         validation_data=(np.asarray(X_validate), np.asarray(y_validate)),
-                        samples_per_epoch=len(X_validate) * 5,
+                        samples_per_epoch=config.BATCH_SIZE*150,
                         nb_epoch=config.NB_EPOCH, verbose=1, callbacks=[checkpoint])
 
 
