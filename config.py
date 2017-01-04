@@ -6,7 +6,10 @@ IMAGE_HEIGHT_CROP = 108
 IMAGE_WIDTH_CROP = 320
 IMAGE_HEIGHT = 64
 IMAGE_WIDTH = 64
-LR = 1e-5
+# (200, 66) <-- Original NVIDIA Paper
+IMAGE_WIDTH = 200
+IMAGE_HEIGHT = 66
+LR = 1e-4
 OPTIMIZER = Adam(lr=LR)
 LOSS = 'mse'
 NB_EPOCH = 10
@@ -21,7 +24,7 @@ def return_image(img):
     assert crop_img.shape[0] == IMAGE_HEIGHT_CROP
     assert crop_img.shape[1] == IMAGE_WIDTH_CROP
     img = cv2.cvtColor(crop_img, cv2.COLOR_BGR2RGB)
-    img = np.array(img)/255. - 0.5
+    # img = np.array(img)/255. - 0.5
     img = (cv2.resize(img, (IMAGE_WIDTH, IMAGE_HEIGHT), interpolation=cv2.INTER_AREA))
     return np.float32(img)
 

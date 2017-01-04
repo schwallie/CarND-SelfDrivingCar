@@ -36,16 +36,19 @@ def normal_init(shape, name=None):
 def steering_net():
     # p = .5
     model = Sequential()
-    model.add(Convolution2D(24, 5, 5, init='he_normal', subsample=(2, 2), name='conv1_1',
-                            input_shape=(config.IMAGE_HEIGHT, config.IMAGE_WIDTH, 3)))  #
+    # Vivek, color space conversion layer so the model automatically figures out the best color space
+    model.add(Lambda(lambda x: x / 127.5 - .5,
+                     input_shape=(config.IMAGE_HEIGHT, config.IMAGE_WIDTH, 3)))
+    model.add(Convolution2D(3, 1, 1, border_mode='same', name='color_conv'))
+    model.add(Convolution2D(24, 5, 5, init='he_normal', subsample=(2, 2), name='conv1'))
     model.add(ELU())
-    model.add(Convolution2D(36, 5, 5, init='he_normal', subsample=(2, 2), name='conv2_1'))  #
+    model.add(Convolution2D(36, 5, 5, init='he_normal', subsample=(2, 2), name='conv2'))  #
     model.add(ELU())
-    model.add(Convolution2D(48, 5, 5, init='he_normal', subsample=(2, 2), name='conv3_1'))  #
+    model.add(Convolution2D(48, 5, 5, init='he_normal', subsample=(2, 2), name='conv3'))  #
     model.add(ELU())
-    model.add(Convolution2D(64, 3, 3, init='he_normal', subsample=(1, 1), name='conv4_1'))  #
+    model.add(Convolution2D(64, 3, 3, init='he_normal', subsample=(1, 1), name='conv4'))  #
     model.add(ELU())
-    model.add(Convolution2D(64, 3, 3, init='he_normal', subsample=(1, 1), name='conv4_2'))  #
+    model.add(Convolution2D(64, 3, 3, init='he_normal', subsample=(1, 1), name='conv5'))  #
     model.add(ELU())
     model.add(Flatten())
     model.add(Dense(1164, init='he_normal', name="dense_1164"))  #
@@ -60,7 +63,7 @@ def steering_net():
     model.add(Dense(10, init='he_normal', name="dense_10"))  #
     model.add(ELU())
     model.add(Dense(1, init='he_normal', name="dense_1"))  #
-    model.add(Lambda(atan_layer, output_shape=atan_layer_shape, name="atan_0"))
+    # model.add(Lambda(atan_layer, output_shape=atan_layer_shape, name="atan_0"))
 
     return model
 
@@ -90,7 +93,7 @@ def train(data=None):
     print(model.summary())
     print("Loaded validation datasetset")
     print("Training..")
-    checkpoint_path = "full_model.{epoch:02d}-{val_loss:.3f}.h5"
+    checkpoint_path = "model_66x200.{epoch:02d}-{val_loss:.3f}.h5"
     checkpoint = ModelCheckpoint(checkpoint_path, verbose=1, save_best_only=False, save_weights_only=False, mode='auto')
     model.fit_generator(generate_arrays(X_train, y_train),
                         validation_data=(np.asarray(X_validate), np.asarray(y_validate)),
