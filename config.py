@@ -41,9 +41,11 @@ def add_flipped_images(path = 'data/altered_drive_df.csv'):
         if rnd == 1:
             maxidx += 1
             # Flip and created a new image
-            img_path = row['center']
-            new_path = 'data/IMG/FLIPPED_{0}'.format(img_path.split('/')[-1])
-            img = np.array(cv2.imread(img_path))
+            img_path = 'data/{0}'.format(row['center'])
+            new_path = 'data/IMG/FLIPPED_{0}'.format(row['center'].split('/')[-1])
+            img = cv2.imread(img_path)
+            img = np.array(img)
+            print(img)
             img = cv2.flip(img, 1)
             cv2.imwrite(new_path, img)
             steer = -row['steering']
