@@ -13,7 +13,7 @@ import load_data
 
 
 def steering_net():
-    """p = .5
+    p = .5
     model = Sequential()
     # Vivek, color space conversion layer so the model automatically figures out the best color space
     model.add(Lambda(lambda x: x / 255. - .5,
@@ -43,25 +43,7 @@ def steering_net():
     # model.add(Dropout(p))
     model.add(Dense(10, init='he_normal', name="dense_10"))  #
     model.add(ELU())
-    model.add(Dense(1, init='he_normal', name="dense_1"))  #"""
-    ch, row, col = 3, 160, 320  # camera format
-
-    model = Sequential()
-    model.add(Lambda(lambda x: x / 127.5 - 1.,
-                     input_shape=(config.IMAGE_HEIGHT, config.IMAGE_WIDTH, 3),
-                     output_shape=(config.IMAGE_HEIGHT, config.IMAGE_WIDTH, 3)))
-    model.add(Convolution2D(16, 8, 8, subsample=(4, 4), border_mode="same"))
-    model.add(ELU())
-    model.add(Convolution2D(32, 5, 5, subsample=(2, 2), border_mode="same"))
-    model.add(ELU())
-    model.add(Convolution2D(64, 5, 5, subsample=(2, 2), border_mode="same"))
-    model.add(Flatten())
-    model.add(Dropout(.2))
-    model.add(ELU())
-    model.add(Dense(512))
-    model.add(Dropout(.5))
-    model.add(ELU())
-    model.add(Dense(1))
+    model.add(Dense(1, init='he_normal', name="dense_1"))  #
     return model
 
 
@@ -79,7 +61,7 @@ def generate_arrays(X_train, y_train):
             yield np.array(imgs), np.array(y_train[ix * config.BATCH_SIZE:(ix + 1) * config.BATCH_SIZE])
 
 
-def train(data=None, path='data/driving_log.csv', checkpoint_path="brand_new_model-{epoch:02d}-{val_loss:.3f}.h5"):
+def train(data=None, path='data/driving_log.csv', checkpoint_path="model_1164_3x1x1-{epoch:02d}-{val_loss:.3f}.h5"):
     model = get_model()
     print("Loaded model")
     if data is None:
