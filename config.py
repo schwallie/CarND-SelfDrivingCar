@@ -19,13 +19,14 @@ NB_EPOCH = 10
 BATCH_SIZE = 128
 
 
-def return_image(img):
+def return_image(img, color_change=True):
     # Take out the dash and horizon
     img_shape = img.shape
     crop_img = img[int(img_shape[0] / 5):img_shape[0] - 20, 0:img_shape[1]]
     assert crop_img.shape[0] == IMAGE_HEIGHT_CROP
     assert crop_img.shape[1] == IMAGE_WIDTH_CROP
-    img = cv2.cvtColor(crop_img, cv2.COLOR_BGR2RGB)
+    if color_change:
+        img = cv2.cvtColor(crop_img, cv2.COLOR_BGR2RGB)
     img = (cv2.resize(img, (IMAGE_WIDTH, IMAGE_HEIGHT), interpolation=cv2.INTER_AREA))
     return np.float32(img)
 
