@@ -30,7 +30,7 @@ def steering_net():
     model.add(Convolution2D(64, 3, 3, init='he_normal', subsample=(1, 1), name='conv5'))  #
     model.add(ELU())
     model.add(Flatten())
-    # model.add(Dense(1164, init='he_normal', name="dense_1164"))  #
+    model.add(Dense(1164, init='he_normal', name="dense_1164"))  #
     model.add(ELU())
     # model.add(Dropout(p))
     model.add(Dense(100, init='he_normal', name="dense_100"))  #
