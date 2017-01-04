@@ -38,7 +38,7 @@ def steering_net():
     # model.add(Dropout(p))
     model.add(Dense(50, init='he_normal', name="dense_50"))  #
     model.add(ELU())
-    model.add(Dropout(p))
+    # model.add(Dropout(p))
     model.add(Dense(10, init='he_normal', name="dense_10"))  #
     model.add(ELU())
     model.add(Dense(1, init='he_normal', name="dense_1"))  #
