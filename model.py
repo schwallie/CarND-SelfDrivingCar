@@ -30,7 +30,7 @@ def steering_net():
     model.add(Convolution2D(64, 3, 3, init='he_normal', subsample=(1, 1), name='conv5'))  #
     model.add(ELU())
     model.add(Flatten())
-    model.add(Dense(1164, init='he_normal', name="dense_1164"))  #
+    # model.add(Dense(1164, init='he_normal', name="dense_1164"))  #
     model.add(ELU())
     # model.add(Dropout(p))
     model.add(Dense(100, init='he_normal', name="dense_100"))  #
@@ -70,7 +70,7 @@ def train(data=None):
     print(model.summary())
     print("Loaded validation datasetset")
     print("Training..")
-    checkpoint_path = "model_200x66_centeronly_gr_25_throttle-{epoch:02d}-{val_loss:.3f}.h5"
+    checkpoint_path = "model_no_extra_1164-{epoch:02d}-{val_loss:.3f}.h5"
     checkpoint = ModelCheckpoint(checkpoint_path, verbose=1, save_best_only=False, save_weights_only=False, mode='auto')
     model.fit_generator(generate_arrays(X_train, y_train),
                         validation_data=(np.asarray(X_validate), np.asarray(y_validate)),
