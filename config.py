@@ -23,20 +23,19 @@ def return_image(img):
     # Take out the dash and horizon
     img_shape = img.shape
     crop_img = img[int(img_shape[0] / 5):img_shape[0] - 20, 0:img_shape[1]]
-    # resize_img = cv2.resize(crop_img, (320, 108), interpolation=cv2.INTER_AREA)
     assert crop_img.shape[0] == IMAGE_HEIGHT_CROP
     assert crop_img.shape[1] == IMAGE_WIDTH_CROP
     img = cv2.cvtColor(crop_img, cv2.COLOR_BGR2RGB)
-    # img = np.array(img)/255. - 0.5
     img = (cv2.resize(img, (IMAGE_WIDTH, IMAGE_HEIGHT), interpolation=cv2.INTER_AREA))
     return np.float32(img)
 
-def create_altered_drive_df():
-    drive_df = pd.read_csv('data/driving_log.csv')
-    drive_df = drive_df[drive_df['throttle'] > .25]
-    drive_df.to_csv('data/altered_driving_log.csv')
 
-def add_flipped_images(path = 'data/altered_driving_log.csv'):
+def create_altered_drive_df(path):
+    drive_df = pd.read_csv('data/driving_log.csv')
+    drive_df.to_csv(path)
+
+
+def add_flipped_images(path):
     drive_df = pd.read_csv(path)
     maxidx = max(drive_df.index)
     addition = {}
@@ -58,5 +57,13 @@ def add_flipped_images(path = 'data/altered_driving_log.csv'):
     drive_df = pd.concat([drive_df, new_df])
     drive_df.to_csv(path)
 
-def create_and_train_with_altered_images():
+
+def create_and_train_with_altered_images(path='data/altered_driving_log.csv'):
+    import os
+    if not os.path.isfile(path):
+        print("Creating Altered Files")
+        create_altered_drive_df()
+        add_flipped_images()
     import model
+    model.train(path=path)
+

@@ -61,18 +61,18 @@ def generate_arrays(X_train, y_train):
             yield np.array(imgs), np.array(y_train[ix * config.BATCH_SIZE:(ix + 1) * config.BATCH_SIZE])
 
 
-def train(data=None):
+def train(data=None, path='data/driving_log.csv'):
     model = get_model()
     print("Loaded model")
     if data is None:
-        X_train, X_validate, y_train, y_validate = load_data.return_validation()
+        X_train, X_validate, y_train, y_validate = load_data.return_validation(path=path)
     else:
         X_train, X_validate, y_train, y_validate = data[0], data[1], data[2], data[3]
     X_validate = [config.return_image(cv2.imread(f)) for f in X_validate]
     print(model.summary())
     print("Loaded validation datasetset")
     print("Training..")
-    checkpoint_path = "model_1164_no_3x1x1-{epoch:02d}-{val_loss:.3f}.h5"
+    checkpoint_path = "model_1164_3x1x1_no_throttle-{epoch:02d}-{val_loss:.3f}.h5"
     checkpoint = ModelCheckpoint(checkpoint_path, verbose=1, save_best_only=False, save_weights_only=False, mode='auto')
     model.fit_generator(generate_arrays(X_train, y_train),
                         validation_data=(np.asarray(X_validate), np.asarray(y_validate)),
