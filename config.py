@@ -27,7 +27,3 @@ def return_image(img):
     # img = np.array(img)/255. - 0.5
     img = (cv2.resize(img, (IMAGE_WIDTH, IMAGE_HEIGHT), interpolation=cv2.INTER_AREA))
     return np.float32(img)
-
-
-def normalize_image(image_set):
-    return (image_set - image_set.mean()) / np.std(image_set)

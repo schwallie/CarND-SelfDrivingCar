@@ -1,7 +1,5 @@
 import cv2
 import numpy as np
-import tensorflow as tf
-from keras import backend as K
 from keras.callbacks import ModelCheckpoint
 from keras.layers import Convolution2D, ELU
 from keras.layers import Dense, Flatten
@@ -10,28 +8,6 @@ from keras.models import Sequential
 
 import config
 import load_data
-
-
-def global_average_pooling(x):
-    return tf.reduce_mean(x, (1, 2))
-
-
-def global_average_pooling_shape(input_shape):
-    return input_shape[0], input_shape[3]
-
-
-def atan_layer(x):
-    return tf.mul(tf.atan(x), 2)
-
-
-def atan_layer_shape(input_shape):
-    return input_shape
-
-
-def normal_init(shape, name=None):
-    initial = tf.truncated_normal(shape, stddev=0.1)
-    return K.variable(initial)
-
 
 def steering_net():
     # p = .5
@@ -93,7 +69,7 @@ def train(data=None):
     print(model.summary())
     print("Loaded validation datasetset")
     print("Training..")
-    checkpoint_path = "model_66x200.{epoch:02d}-{val_loss:.3f}.h5"
+    checkpoint_path = "model_66x200-{epoch:02d}-{val_loss:.3f}.h5"
     checkpoint = ModelCheckpoint(checkpoint_path, verbose=1, save_best_only=False, save_weights_only=False, mode='auto')
     model.fit_generator(generate_arrays(X_train, y_train),
                         validation_data=(np.asarray(X_validate), np.asarray(y_validate)),
