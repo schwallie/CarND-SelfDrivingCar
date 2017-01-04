@@ -44,11 +44,11 @@ def add_flipped_images(path = 'data/altered_driving_log.csv'):
             maxidx += 1
             # Flip and created a new image
             img_path = 'data/{0}'.format(row['center'])
-            new_path = 'data/IMG/FLIPPED_{0}'.format(row['center'].split('/')[-1])
+            new_path = 'IMG/FLIPPED_{0}'.format(row['center'].split('/')[-1])
             img = cv2.imread(img_path)
             img = np.array(img)
             img = cv2.flip(img, 1)
-            cv2.imwrite(new_path, img)
+            cv2.imwrite('data/{0}'.format(new_path), img)
             steer = -row['steering']
             addition[maxidx] = {'center': new_path, 'steering': steer}
     new_df = pd.DataFrame.from_dict(addition, orient='index')
