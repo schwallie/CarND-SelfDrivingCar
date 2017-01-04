@@ -38,7 +38,7 @@ def add_flipped_images(path = 'data/altered_driving_log.csv'):
     drive_df = pd.read_csv(path)
     maxidx = max(drive_df.index)
     addition = {}
-    for idx, row in drive_df[0:10].iterrows():
+    for idx, row in drive_df.iterrows():
         rnd = np.random.randint(2)
         if rnd == 1:
             maxidx += 1
