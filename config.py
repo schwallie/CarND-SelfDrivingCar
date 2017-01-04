@@ -8,7 +8,7 @@ IMAGE_WIDTH_CROP = 320
 # IMAGE_HEIGHT = 64
 # IMAGE_WIDTH = 64
 THROTTLE_ADJUSTMENT = 1
-AUTONOMOUS_THROTTLE = .1
+AUTONOMOUS_THROTTLE = .2
 # (200, 66) <-- Original NVIDIA Paper
 IMAGE_WIDTH = 200
 IMAGE_HEIGHT = 66
@@ -63,8 +63,8 @@ def create_and_train_with_altered_images(path='data/altered_driving_log.csv'):
     import os
     if not os.path.isfile(path):
         print("Creating Altered Files")
-        create_altered_drive_df()
-        add_flipped_images()
+        create_altered_drive_df(path)
+        add_flipped_images(path)
     import model
-    model.train(path=path)
+    model.train(path=path, checkpoint_path="altered_model_1164-{epoch:02d}-{val_loss:.3f}.h5")
 

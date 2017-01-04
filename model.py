@@ -61,7 +61,7 @@ def generate_arrays(X_train, y_train):
             yield np.array(imgs), np.array(y_train[ix * config.BATCH_SIZE:(ix + 1) * config.BATCH_SIZE])
 
 
-def train(data=None, path='data/driving_log.csv'):
+def train(data=None, path='data/driving_log.csv', checkpoint_path="model_1164_3x1x1-{epoch:02d}-{val_loss:.3f}.h5"):
     model = get_model()
     print("Loaded model")
     if data is None:
@@ -72,7 +72,6 @@ def train(data=None, path='data/driving_log.csv'):
     print(model.summary())
     print("Loaded validation datasetset")
     print("Training..")
-    checkpoint_path = "model_1164_3x1x1_no_colorchange-{epoch:02d}-{val_loss:.3f}.h5"
     checkpoint = ModelCheckpoint(checkpoint_path, verbose=1, save_best_only=False, save_weights_only=False, mode='auto')
     model.fit_generator(generate_arrays(X_train, y_train),
                         validation_data=(np.asarray(X_validate), np.asarray(y_validate)),
@@ -80,7 +79,7 @@ def train(data=None, path='data/driving_log.csv'):
                         nb_epoch=config.NB_EPOCH, verbose=1, callbacks=[checkpoint])
 
 
-def load_saved_model(path='full_model.03-0.011.h5'):
+def load_saved_model(path):
     model = steering_net()
     model.load_weights(path)
     model.compile(loss=config.LOSS, optimizer=config.OPTIMIZER)
