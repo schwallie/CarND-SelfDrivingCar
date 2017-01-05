@@ -80,7 +80,7 @@ def generate_arrays(X_train, y_train):
             yield np.array(imgs), np.array(y_train[ix * config.BATCH_SIZE:(ix + 1) * config.BATCH_SIZE])
 
 
-def train(path='data/driving_log.csv', checkpoint_path="models/comma_model_no_validate-{epoch:02d}-{val_loss:.3f}.h5"):
+def train(path='data/driving_log.csv', checkpoint_path="models/comma_model_no_validate-{epoch:02d}.h5"):
     model = get_comma_model()
     print("Loaded model")
     X_train, y_train = load_data.load_data(path=path)
