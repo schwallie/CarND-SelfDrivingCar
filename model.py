@@ -67,7 +67,7 @@ def train(data=None, path='data/driving_log.csv', checkpoint_path="model_1164_3x
     checkpoint = ModelCheckpoint(checkpoint_path, verbose=1, save_best_only=False, save_weights_only=False, mode='auto')
     model.fit_generator(generate_arrays(X_train, y_train),
                         validation_data=(np.asarray(X_validate), np.asarray(y_validate)),
-                        samples_per_epoch=config.BATCH_SIZE*150,
+                        samples_per_epoch=config.BATCH_SIZE*50,
                         nb_epoch=config.NB_EPOCH, verbose=1, callbacks=[checkpoint])
 
 
