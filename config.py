@@ -5,18 +5,19 @@ from keras.optimizers import Adam
 
 IMAGE_HEIGHT_CROP = 108
 IMAGE_WIDTH_CROP = 320
+CHANNELS = 3
 # IMAGE_HEIGHT = 64
 # IMAGE_WIDTH = 64
 THROTTLE_ADJUSTMENT = .75
 AUTONOMOUS_THROTTLE = .2
 # (200, 66) <-- Original NVIDIA Paper
-IMAGE_WIDTH = 200
-IMAGE_HEIGHT = 66
+IMAGE_WIDTH = 64
+IMAGE_HEIGHT = 32
 LR = 1e-4
 OPTIMIZER = Adam(lr=LR)
 LOSS = 'mse'
-NB_EPOCH = 10
-BATCH_SIZE = 128
+NB_EPOCH = 200
+BATCH_SIZE = 64
 
 
 def return_image(img, color_change=True):
@@ -67,3 +68,23 @@ def create_and_train_with_altered_images(path='data/altered_driving_log.csv'):
     import model
     model.train(path=path, checkpoint_path="altered_model_1164-{epoch:02d}-{val_loss:.3f}.h5")
 
+
+"""
+Office Hours:
+He used the comma.ai model and these transformations
+
+from img_transformations import translate, brighten_or_darken, cropout_sky_hood
+
+img = Image.open(center_img_filepath)
+img = brighten_or_darken(img, brightness_factor_min=0.25)
+img, steering_angle = translate(img, steering_angle)
+img = cropout_sky_hood(img)
+print('translated steering angle', steering_angle)
+img = img.resize((64, 32))
+plt.imshow(img)
+
+
+as for the bridge part, you can subsample data to remove data with small angles, so the bias for going straight is reduced
+
+
+"""

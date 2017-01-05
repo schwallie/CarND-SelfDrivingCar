@@ -31,12 +31,29 @@ def steering_net():
     model.add(Convolution2D(64, 3, 3, init='he_normal', activation='elu',
                             subsample=(1, 1), name='conv5'))
     model.add(Flatten())
-    model.add(Dense(1164, init='he_normal', name="dense_1164", activation='elu'))
+    # We think NVIDIA has an error and actually meant the flatten == 1152, so no Dense 1164 layer
+    # model.add(Dense(1164, init='he_normal', name="dense_1164", activation='elu'))
     model.add(Dense(100, init='he_normal', name="dense_100", activation='elu'))
     model.add(Dense(50, init='he_normal', name="dense_50", activation='elu'))
     model.add(Dense(10, init='he_normal', name="dense_10", activation='elu'))
     model.add(Dense(1, init='he_normal', name="dense_1"))
     return model
+
+def comma_model():
+    model = Sequential()
+    model.add(Lambda(lambda x: x / 127.5 - 1.,
+                     input_shape=(config.CHANNELS, config.IMAGE_HEIGHT, config.IMAGE_WIDTH),
+                     output_shape=(config.CHANNELS, config.IMAGE_HEIGHT, config.IMAGE_WIDTH)))
+    model.add(Convolution2D(16, 8, 8, subsample=(4, 4), border_mode="same", activation='elu'))
+    model.add(Convolution2D(32, 5, 5, subsample=(2, 2), border_mode="same", activation='elu'))
+    model.add(Convolution2D(64, 5, 5, subsample=(2, 2), border_mode="same"))
+    model.add(Flatten())
+    model.add(Dropout(.2))
+    model.add(ELU())
+    model.add(Dense(512))
+    model.add(Dropout(.5))
+    model.add(ELU())
+    model.add(Dense(1))
 
 
 def get_model():
@@ -53,21 +70,16 @@ def generate_arrays(X_train, y_train):
             yield np.array(imgs), np.array(y_train[ix * config.BATCH_SIZE:(ix + 1) * config.BATCH_SIZE])
 
 
-def train(data=None, path='data/driving_log.csv', checkpoint_path="model_smoothed-{epoch:02d}-{val_loss:.3f}.h5"):
+def train(path='data/driving_log.csv', checkpoint_path="models/comma_model_no_validate-{epoch:02d}-{val_loss:.3f}.h5"):
     model = get_model()
     print("Loaded model")
-    if data is None:
-        X_train, X_validate, y_train, y_validate = load_data.return_validation(path=path)
-    else:
-        X_train, X_validate, y_train, y_validate = data[0], data[1], data[2], data[3]
-    X_validate = [config.return_image(cv2.imread(f)) for f in X_validate]
+    X_train, y_train = load_data.load_data(path=path)
     print(model.summary())
     print("Loaded validation datasetset")
     print("Training..")
     checkpoint = ModelCheckpoint(checkpoint_path, verbose=1, save_best_only=False, save_weights_only=False, mode='auto')
     model.fit_generator(generate_arrays(X_train, y_train),
-                        validation_data=(np.asarray(X_validate), np.asarray(y_validate)),
-                        samples_per_epoch=config.BATCH_SIZE*50,
+                        samples_per_epoch=10000,
                         nb_epoch=config.NB_EPOCH, verbose=1, callbacks=[checkpoint])
 
 

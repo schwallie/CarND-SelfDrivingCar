@@ -25,4 +25,6 @@ def load_data(path='data/driving_log.csv'):  # altered_driving_log.csv
 
 def return_validation(path='data/driving_log.csv'):
     X_data, y_data = load_data(path=path)
-    return train_test_split(X_data, y_data, test_size=.2, random_state=43)
+    return train_test_split(X_data, y_data, test_size=.05, random_state=43)
+
+
