@@ -53,7 +53,7 @@ def generate_arrays(X_train, y_train):
             yield np.array(imgs), np.array(y_train[ix * config.BATCH_SIZE:(ix + 1) * config.BATCH_SIZE])
 
 
-def train(data=None, path='data/driving_log.csv', checkpoint_path="model_1164_3x1x1-{epoch:02d}-{val_loss:.3f}.h5"):
+def train(data=None, path='data/driving_log.csv', checkpoint_path="model_smoothed-{epoch:02d}-{val_loss:.3f}.h5"):
     model = get_model()
     print("Loaded model")
     if data is None:

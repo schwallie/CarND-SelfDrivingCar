@@ -5,10 +5,12 @@ from sklearn.model_selection import train_test_split
 
 def load_data(path='data/driving_log.csv'):  # altered_driving_log.csv
     drive_df = pd.read_csv(path)
+    drive_df['steering_smoothed'] = pd.rolling_mean(drive_df['steering'], 20)
+    drive_df['steering_smoothed'] = drive_df['steering_smoothed'].fillna(0)
     # TODO: Try .08 instead of .25
     # drive_df['left_steering'] = drive_df['steering'] + .08
     # drive_df['right_steering'] = drive_df['steering'] - .08
-    drive_df = drive_df.rename(columns={'steering': 'center_steering'})
+    drive_df = drive_df.rename(columns={'steering_smoothed': 'center_steering'})
     X_data = []
     y_data = []
     for cam_type in ['center']: # , 'left', 'right']:
