@@ -16,7 +16,7 @@ def load_data(path='data/driving_log.csv'):  # altered_driving_log.csv
     y_data = []
     for cam_type in ['center', 'left', 'right']:
         drive_df[cam_type] = drive_df[cam_type].str.strip()
-        vals = drive_df[cam_type].values
+        vals = drive_df[pd.notnull(drive_df[cam_type])][cam_type].values
         arr = ['data/{0}'.format(f) for f in vals]
         X_data.extend(arr)
         y_data.extend(drive_df['{0}_steering'.format(cam_type)].values)
