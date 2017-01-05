@@ -20,7 +20,7 @@ def load_data(path='data/driving_log.csv'):  # altered_driving_log.csv
         arr = ['data/{0}'.format(f) for f in vals]
         X_data.extend(arr)
         y_cam_type = '{0}_steering'.format(cam_type)
-        y_data.extend(drive_df[pd.notnull(drive_df[y_cam_type])][y_cam_type].values)
+        y_data.extend(drive_df[pd.notnull(drive_df[cam_type])][y_cam_type].values)
     y_data = np.float32(y_data)
     # Shuffle since I'm not doing validation
     # TODO: Make sure I didn't screw up anything with shuffle
