@@ -45,8 +45,8 @@ def steering_net():
 def comma_model():
     model = Sequential()
     model.add(Lambda(lambda x: x / 127.5 - 1.,
-                     input_shape=(config.CHANNELS, config.IMAGE_HEIGHT, config.IMAGE_WIDTH),
-                     output_shape=(config.CHANNELS, config.IMAGE_HEIGHT, config.IMAGE_WIDTH)))
+                     input_shape=(config.IMAGE_HEIGHT, config.IMAGE_WIDTH, config.CHANNELS),
+                     output_shape=(config.IMAGE_HEIGHT, config.IMAGE_WIDTH, config.CHANNELS)))
     model.add(Convolution2D(16, 8, 8, subsample=(4, 4), border_mode="same", activation='elu'))
     model.add(Convolution2D(32, 5, 5, subsample=(2, 2), border_mode="same", activation='elu'))
     model.add(Convolution2D(64, 5, 5, subsample=(2, 2), border_mode="same"))
