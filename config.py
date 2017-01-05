@@ -13,10 +13,10 @@ AUTONOMOUS_THROTTLE = .15
 # (200, 66) <-- Original NVIDIA Paper
 IMAGE_WIDTH = 64
 IMAGE_HEIGHT = 32
-LR = 1e-4
+LR = 1e-5
 OPTIMIZER = Adam(lr=LR)
 LOSS = 'mse'
-NB_EPOCH = 8
+NB_EPOCH = 10
 BATCH_SIZE = 256
 
 def return_image(img, color_change=True):
