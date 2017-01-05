@@ -85,7 +85,6 @@ def train(path='data/driving_log.csv', checkpoint_path="models/comma_model_no_va
     print("Loaded model")
     X_train, y_train = load_data.load_data(path=path)
     print(model.summary())
-    print("Loaded validation datasetset")
     print("Training..")
     checkpoint = ModelCheckpoint(checkpoint_path, verbose=1, save_best_only=False, save_weights_only=True, mode='auto')
     model.fit_generator(generate_arrays(X_train, y_train),
@@ -101,8 +100,12 @@ def load_saved_model(path):
 
 
 def load_saved_comma_model():
-    model = model_from_json(json.load('model.json'))
-    model.compile("adam", "mse")
+    # with open('model.json', 'r') as jfile:
+    #    loaded = json.load(jfile)
+    #    model = model_from_json(loaded)
+    # model = model_from_json(json.load(open('model.json')))
+    # model.compile("adam", "mse")
+    model = get_comma_model()
     model.load_weights('model.h5')
     return model
 
@@ -115,9 +118,12 @@ def save_comma_model(path):
         json.dump(json_string, f)
     model.save_weights('model.h5')
 
-
 def save_model(model):
     import json
     json_string = model.to_json()
     model.save_weights('model.h5')
     json.dump(json_string, open('model.json', 'w'))
+
+
+
+

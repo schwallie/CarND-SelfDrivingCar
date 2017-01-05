@@ -8,8 +8,8 @@ IMAGE_WIDTH_CROP = 320
 CHANNELS = 3
 # IMAGE_HEIGHT = 64
 # IMAGE_WIDTH = 64
-THROTTLE_ADJUSTMENT = .75
-AUTONOMOUS_THROTTLE = .2
+THROTTLE_ADJUSTMENT = 1
+AUTONOMOUS_THROTTLE = .1
 # (200, 66) <-- Original NVIDIA Paper
 IMAGE_WIDTH = 64
 IMAGE_HEIGHT = 32
@@ -18,7 +18,6 @@ OPTIMIZER = Adam(lr=LR)
 LOSS = 'mse'
 NB_EPOCH = 8
 BATCH_SIZE = 256
-
 
 def return_image(img, color_change=True):
     # Take out the dash and horizon
