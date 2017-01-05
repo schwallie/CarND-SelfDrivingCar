@@ -1,6 +1,7 @@
 import numpy as np
 import pandas as pd
 from sklearn.model_selection import train_test_split
+from sklearn.utils import shuffle
 
 
 def load_data(path='data/driving_log.csv'):  # altered_driving_log.csv
@@ -20,7 +21,9 @@ def load_data(path='data/driving_log.csv'):  # altered_driving_log.csv
         X_data.extend(arr)
         y_data.extend(drive_df['{0}_steering'.format(cam_type)].values)
     y_data = np.float32(y_data)
-    return X_data, y_data
+    # Shuffle since I'm not doing validation
+    # TODO: Make sure I didn't screw up anything with shuffle
+    return shuffle(X_data, y_data)
 
 
 def return_validation(path='data/driving_log.csv'):

@@ -56,7 +56,8 @@ def send_control(steering_angle, throttle):
 
 if __name__ == '__main__':
     import model
-    saved_model = model.load_saved_model('model.h5')
+    # saved_model = model.load_saved_model('model.h5')
+    saved_model = model.load_saved_model()
     # wrap Flask application with engineio's middleware
     app = socketio.Middleware(sio, app)
     # deploy as an eventlet WSGI server

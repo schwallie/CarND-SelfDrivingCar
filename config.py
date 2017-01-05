@@ -16,8 +16,8 @@ IMAGE_HEIGHT = 32
 LR = 1e-4
 OPTIMIZER = Adam(lr=LR)
 LOSS = 'mse'
-NB_EPOCH = 200
-BATCH_SIZE = 64
+NB_EPOCH = 8
+BATCH_SIZE = 256
 
 
 def return_image(img, color_change=True):

@@ -1,3 +1,4 @@
+import json
 import math
 
 import cv2
@@ -7,6 +8,7 @@ from keras.layers import Convolution2D, ELU
 from keras.layers import Dense, Flatten
 from keras.layers.core import Lambda, Dropout
 from keras.models import Sequential
+from keras.models import model_from_json
 
 import config
 import load_data
@@ -22,7 +24,7 @@ def steering_net():
     # keras.layers.convolutional.Convolution2D(nb_filter, nb_row, nb_col, border_mode='valid')
     model.add(Convolution2D(24, 5, 5, init='he_normal', activation='elu',
                             subsample=(2, 2), name='conv1'))
-    model.add(Convolution2D(36, 5, 5, init='he_normal',  activation='elu',
+    model.add(Convolution2D(36, 5, 5, init='he_normal', activation='elu',
                             subsample=(2, 2), name='conv2'))
     model.add(Convolution2D(48, 5, 5, init='he_normal', activation='elu',
                             subsample=(2, 2), name='conv3'))
@@ -39,6 +41,7 @@ def steering_net():
     model.add(Dense(1, init='he_normal', name="dense_1"))
     return model
 
+
 def comma_model():
     model = Sequential()
     model.add(Lambda(lambda x: x / 127.5 - 1.,
@@ -54,12 +57,19 @@ def comma_model():
     model.add(Dropout(.5))
     model.add(ELU())
     model.add(Dense(1))
+    return model
 
 
 def get_model():
     model = steering_net()
     model.compile(loss=config.LOSS, optimizer=config.OPTIMIZER)
     return model
+
+def get_comma_model():
+    model = comma_model()
+    model.compile(loss=config.LOSS, optimizer=config.OPTIMIZER)
+    return model
+
 
 
 def generate_arrays(X_train, y_train):
@@ -71,13 +81,13 @@ def generate_arrays(X_train, y_train):
 
 
 def train(path='data/driving_log.csv', checkpoint_path="models/comma_model_no_validate-{epoch:02d}-{val_loss:.3f}.h5"):
-    model = get_model()
+    model = get_comma_model()
     print("Loaded model")
     X_train, y_train = load_data.load_data(path=path)
     print(model.summary())
     print("Loaded validation datasetset")
     print("Training..")
-    checkpoint = ModelCheckpoint(checkpoint_path, verbose=1, save_best_only=False, save_weights_only=False, mode='auto')
+    checkpoint = ModelCheckpoint(checkpoint_path, verbose=1, save_best_only=False, save_weights_only=True, mode='auto')
     model.fit_generator(generate_arrays(X_train, y_train),
                         samples_per_epoch=10000,
                         nb_epoch=config.NB_EPOCH, verbose=1, callbacks=[checkpoint])
@@ -88,6 +98,22 @@ def load_saved_model(path):
     model.load_weights(path)
     model.compile(loss=config.LOSS, optimizer=config.OPTIMIZER)
     return model
+
+
+def load_saved_comma_model():
+    model = model_from_json(json.load('model.json'))
+    model.compile("adam", "mse")
+    model.load_weights('model.h5')
+    return model
+
+
+def save_comma_model(path):
+    model = get_comma_model()
+    model.load_weights(path)
+    json_string = model.to_json()
+    with open('model.json', 'w') as f:
+        json.dump(json_string, f)
+    model.save_weights('model.h5')
 
 
 def save_model(model):
