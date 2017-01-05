@@ -65,7 +65,7 @@ def create_and_train_with_altered_images(path='data/altered_driving_log.csv'):
         create_altered_drive_df(path)
         add_flipped_images(path)
     import model
-    model.train(path=path, checkpoint_path="altered_model_1164-{epoch:02d}-{val_loss:.3f}.h5")
+    model.train(path=path, checkpoint_path="altered_model_1164-{epoch:02d}.h5")
 
 
 """
