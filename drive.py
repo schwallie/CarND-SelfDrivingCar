@@ -34,7 +34,7 @@ def telemetry(sid, data):
     image_array = config.return_image(image_array)
     image_array = image_array[None, :, :, :]
     # This model currently assumes that the features of the model are just the images. Feel free to change this.
-    steering_angle = float(saved_model.predict(image_array, batch_size=1)) * config.THROTTLE_ADJUSTMENT
+    steering_angle = float(saved_model.predict(image_array, batch_size=1)) * config.STEERING_ADJUSTMENT
     # The driving model currently just outputs a constant throttle. Feel free to edit this.
     throttle = config.AUTONOMOUS_THROTTLE
     print('Angle: {0}'.format(round(steering_angle, 4)))
