@@ -13,7 +13,6 @@ import load_data
 
 
 def steering_net():
-    p = .5
     model = Sequential()
     # Vivek, color space conversion layer so the model automatically figures out the best color space
     model.add(Lambda(lambda x: x / 255. - .5,
@@ -21,29 +20,22 @@ def steering_net():
     # model.add(Convolution2D(3, 1, 1, border_mode='same', name='color_conv'))
     # Subsample == stride
     # keras.layers.convolutional.Convolution2D(nb_filter, nb_row, nb_col, border_mode='valid')
-    model.add(Convolution2D(24, 5, 5, init='he_normal', subsample=(2, 2), name='conv1'))
-    model.add(ELU())
-    model.add(Convolution2D(36, 5, 5, init='he_normal', subsample=(2, 2), name='conv2'))  #
-    model.add(ELU())
-    model.add(Convolution2D(48, 5, 5, init='he_normal', subsample=(2, 2), name='conv3'))  #
-    model.add(ELU())
-    model.add(Convolution2D(64, 3, 3, init='he_normal', subsample=(1, 1), name='conv4'))  #
-    model.add(ELU())
-    model.add(Convolution2D(64, 3, 3, init='he_normal', subsample=(1, 1), name='conv5'))  #
-    model.add(ELU())
+    model.add(Convolution2D(24, 5, 5, init='he_normal', activation='elu',
+                            subsample=(2, 2), name='conv1'))
+    model.add(Convolution2D(36, 5, 5, init='he_normal',  activation='elu',
+                            subsample=(2, 2), name='conv2'))
+    model.add(Convolution2D(48, 5, 5, init='he_normal', activation='elu',
+                            subsample=(2, 2), name='conv3'))
+    model.add(Convolution2D(64, 3, 3, init='he_normal', activation='elu',
+                            subsample=(1, 1), name='conv4'))
+    model.add(Convolution2D(64, 3, 3, init='he_normal', activation='elu',
+                            subsample=(1, 1), name='conv5'))
     model.add(Flatten())
-    model.add(Dense(1164, init='he_normal', name="dense_1164"))  #
-    model.add(ELU())
-    # model.add(Dropout(p))
-    model.add(Dense(100, init='he_normal', name="dense_100"))  #
-    model.add(ELU())
-    # model.add(Dropout(p))
-    model.add(Dense(50, init='he_normal', name="dense_50"))  #
-    model.add(ELU())
-    # model.add(Dropout(p))
-    model.add(Dense(10, init='he_normal', name="dense_10"))  #
-    model.add(ELU())
-    model.add(Dense(1, init='he_normal', name="dense_1"))  #
+    model.add(Dense(1164, init='he_normal', name="dense_1164", activation='elu'))
+    model.add(Dense(100, init='he_normal', name="dense_100", activation='elu'))
+    model.add(Dense(50, init='he_normal', name="dense_50", activation='elu'))
+    model.add(Dense(10, init='he_normal', name="dense_10", activation='elu'))
+    model.add(Dense(1, init='he_normal', name="dense_1"))
     return model
 
 
