@@ -4,6 +4,11 @@ import cv2
 import numpy as np
 import pandas as pd
 from keras.optimizers import Adam
+pd.set_option('display.height', 1000)
+pd.set_option('display.max_rows', 500)
+pd.set_option('display.max_columns', 500)
+pd.set_option('display.width', 1000)
+
 
 IMAGE_HEIGHT_CROP = 108
 IMAGE_WIDTH_CROP = 320
@@ -202,7 +207,7 @@ def full_train(path_altered='data/altered_driving_log.csv', path_altered_plus='d
         drive_df = pd.read_csv(path_altered)
         add_translated_images(drive_df, path_altered_plus)
     if not os.path.isfile(path_full):
-        print('Creating Shadows')
+        print('Creating Brightness')
         drive_df = pd.read_csv(path_altered_plus)
         add_brightness_augmented_images(drive_df, path_full)
     import model
