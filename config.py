@@ -210,7 +210,7 @@ def full_train(path_altered='data/altered_driving_log.csv', path_altered_plus='d
         drive_df = pd.read_csv(path_altered_plus)
         add_brightness_augmented_images(drive_df, path_full)
     import model
-    model.train(path=path_full, checkpoint_path="models/lr-full_comma_model_no_validate-{epoch:02d}.h5")
+    model.train(path=path_full, checkpoint_path="models/lr-full_comma_model_cut_out_0s-{epoch:02d}.h5")
 
 
 """
