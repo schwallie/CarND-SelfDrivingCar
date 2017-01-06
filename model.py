@@ -85,6 +85,7 @@ def train(path='data/driving_log.csv', checkpoint_path="models/comma_model_no_va
     print("Loaded model")
     X_train, y_train = load_data.load_data(path=path)
     print(model.summary())
+    print('X_train samples: {0}'.format(len(X_train)))
     print("Training..")
     checkpoint = ModelCheckpoint(checkpoint_path, verbose=1, save_best_only=False, save_weights_only=True, mode='auto')
     model.fit_generator(generate_arrays(X_train, y_train),

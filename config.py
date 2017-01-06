@@ -10,7 +10,7 @@ IMAGE_WIDTH_CROP = 320
 CHANNELS = 3
 # IMAGE_HEIGHT = 64
 # IMAGE_WIDTH = 64
-STEERING_ADJUSTMENT = 1
+STEERING_ADJUSTMENT = 1.2
 AUTONOMOUS_THROTTLE = .15
 # (200, 66) <-- Original NVIDIA Paper
 IMAGE_WIDTH = 64
@@ -20,7 +20,7 @@ OPTIMIZER = Adam(lr=LR)
 LOSS = 'mse'
 NB_EPOCH = 15
 BATCH_SIZE = 256
-SAMPLES_PER_EPOCH = BATCH_SIZE*50
+SAMPLES_PER_EPOCH = BATCH_SIZE * 50
 
 
 def return_image(img, color_change=True):
@@ -96,6 +96,77 @@ def add_translated_images(drive_df, path, translated_image_per_image=5):
     drive_df.to_csv(path)
 
 
+def add_random_shadow(image):
+    top_y = 320 * np.random.uniform()
+    top_x = 0
+    bot_x = 160
+    bot_y = 320 * np.random.uniform()
+    image_hls = cv2.cvtColor(image, cv2.COLOR_RGB2HLS)
+    shadow_mask = 0 * image_hls[:, :, 1]
+    X_m = np.mgrid[0:image.shape[0], 0:image.shape[1]][0]
+    Y_m = np.mgrid[0:image.shape[0], 0:image.shape[1]][1]
+    shadow_mask[((X_m - top_x) * (bot_y - top_y) - (bot_x - top_x) * (Y_m - top_y) >= 0)] = 1
+    # random_bright = .25+.7*np.random.uniform()
+    if np.random.randint(2) == 1:
+        random_bright = .5
+        cond1 = shadow_mask == 1
+        cond0 = shadow_mask == 0
+        if np.random.randint(2) == 1:
+            image_hls[:, :, 1][cond1] = image_hls[:, :, 1][cond1] * random_bright
+        else:
+            image_hls[:, :, 1][cond0] = image_hls[:, :, 1][cond0] * random_bright
+    image = cv2.cvtColor(image_hls, cv2.COLOR_HLS2RGB)
+    return image
+
+
+def add_shadowed_images(drive_df, path):
+    maxidx = max(drive_df.index)
+    addition = {}
+    choices = ['center', 'left', 'right']
+    # I only want to translate the original images with all 3 images avail, not flipped images
+    for idx, row in drive_df[pd.notnull(drive_df['left'])].iterrows():
+        addition[maxidx] = {'steering': row['steering']}
+        for choice in choices:
+            img_path = 'data/{0}'.format(row[choice].strip())
+            new_path = 'IMG/SHADOW_{0}'.format(row[choice].split('/')[-1])
+            img = cv2.imread(img_path)
+            img = add_random_shadow(img)
+            cv2.imwrite('data/{0}'.format(new_path), img)
+            addition[maxidx][choice] = new_path
+        maxidx += 1
+    new_df = pd.DataFrame.from_dict(addition, orient='index')
+    drive_df = drive_df.append(new_df)
+    drive_df.to_csv(path)
+
+
+def augment_brightness_camera_images(image):
+    image1 = cv2.cvtColor(image, cv2.COLOR_RGB2HSV)
+    random_bright = .25 + np.random.uniform()
+    image1[:, :, 2] = image1[:, :, 2] * random_bright
+    image1 = cv2.cvtColor(image1, cv2.COLOR_HSV2RGB)
+    return image1
+
+
+def add_brightness_augmented_images(drive_df, path):
+    maxidx = max(drive_df.index)
+    addition = {}
+    choices = ['center', 'left', 'right']
+    # I only want to translate the original images with all 3 images avail, not flipped images
+    for idx, row in drive_df[pd.notnull(drive_df['left'])].iterrows():
+        addition[maxidx] = {'steering': row['steering']}
+        for choice in choices:
+            img_path = 'data/{0}'.format(row[choice].strip())
+            new_path = 'IMG/BRIGHT_{0}'.format(row[choice].split('/')[-1])
+            img = cv2.imread(img_path)
+            img = augment_brightness_camera_images(img)
+            cv2.imwrite('data/{0}'.format(new_path), img)
+            addition[maxidx][choice] = new_path
+        maxidx += 1
+    new_df = pd.DataFrame.from_dict(addition, orient='index')
+    drive_df = drive_df.append(new_df)
+    drive_df.to_csv(path)
+
+
 def create_and_train_with_altered_images(path='data/altered_driving_log.csv'):
     import os
     if not os.path.isfile(path):
@@ -106,17 +177,36 @@ def create_and_train_with_altered_images(path='data/altered_driving_log.csv'):
     model.train(path=path, checkpoint_path="models/altered_comma_model_no_validate-{epoch:02d}.h5")
 
 
-def full_train(path_altered='data/altered_driving_log.csv', path_full='data/full_driving_log.csv'):
+def train_altered_and_translated_train(path_altered='data/altered_driving_log.csv',
+                                       path_altered_plus='data/altered_plus_driving_log.csv'):
     if not os.path.isfile(path_altered):
         print("Creating Altered Files")
         create_altered_drive_df(path_altered)
         add_flipped_images(path_altered)
-    if not os.path.isfile(path_full):
+    if not os.path.isfile(path_altered_plus):
         print('Creating Translated Files')
         drive_df = pd.read_csv(path_altered)
-        add_translated_images(drive_df, path_full)
+        add_translated_images(drive_df, path_altered_plus)
     import model
-    model.train(path=path_full, checkpoint_path="models/full_comma_model_no_validate-{epoch:02d}.h5")
+    model.train(path=path_altered_plus, checkpoint_path="models/full_comma_model_no_validate-{epoch:02d}.h5")
+
+
+def full_train(path_altered='data/altered_driving_log.csv', path_altered_plus='data/altered_plus_driving_log.csv',
+               path_full='data/full_driving_log.csv'):
+    if not os.path.isfile(path_altered):
+        print("Creating Altered Files")
+        create_altered_drive_df(path_altered)
+        add_flipped_images(path_altered)
+    if not os.path.isfile(path_altered_plus):
+        print('Creating Translated Files')
+        drive_df = pd.read_csv(path_altered)
+        add_translated_images(drive_df, path_altered_plus)
+    if not os.path.isfile(path_full):
+        print('Creating Shadows')
+        drive_df = pd.read_csv(path_altered_plus)
+        add_brightness_augmented_images(drive_df, path_full)
+    import model
+    model.train(path=path_full, checkpoint_path="models/fffull_comma_model_no_validate-{epoch:02d}.h5")
 
 
 """
