@@ -115,7 +115,7 @@ def full_train(path_altered='data/altered_driving_log.csv', path_full='data/full
         drive_df = pd.read_csv(path_altered)
         add_translated_images(drive_df, path_full)
     import model
-    model.train(path=path_full, checkpoint_path="models/altered_comma_model_no_validate-{epoch:02d}.h5")
+    model.train(path=path_full, checkpoint_path="models/full_comma_model_no_validate-{epoch:02d}.h5")
 
 
 """
