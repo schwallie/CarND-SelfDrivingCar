@@ -1,4 +1,5 @@
 import cv2
+import os
 import numpy as np
 import pandas as pd
 from keras.optimizers import Adam
@@ -49,14 +50,60 @@ def add_flipped_images(path):
         new_path = 'IMG/FLIPPED_{0}'.format(row['center'].split('/')[-1])
         img = cv2.imread(img_path)
         img = np.array(img)
-        img = cv2.flip(img, 1)
+        img = np.fliplr(img)
         cv2.imwrite('data/{0}'.format(new_path), img)
         steer = -row['steering']
         addition[maxidx] = {'center': new_path, 'steering': steer}
     new_df = pd.DataFrame.from_dict(addition, orient='index')
-    drive_df = pd.concat([drive_df, new_df])
+    drive_df = drive_df.append(new_df)
     drive_df.to_csv(path)
 
+
+def trans_image(image, steer, trans_range):
+    # Translation
+    rows, cols, channels = image.shape
+    tr_x = trans_range * np.random.uniform() - trans_range / 2
+    steer_ang = steer + tr_x / trans_range * 2 * .2
+    tr_y = 40 * np.random.uniform() - 40 / 2
+    # tr_y = 0
+    Trans_M = np.float32([[1, 0, tr_x], [0, 1, tr_y]])
+    image_tr = cv2.warpAffine(image, Trans_M, (cols, rows))
+    return image_tr, steer_ang
+
+def add_translated_images(drive_df, path, translated_image_per_image=5):
+    maxidx = max(drive_df.index)
+    addition = {}
+    choices = ['center', 'left', 'right']
+    # I only want to translate the original images with all 3 images avail, not flipped images
+    for idx, row in drive_df[pd.notnull(drive_df['left'])].iterrows():
+        addition[maxidx] = {}
+        for choice in choices:
+            img_path = 'data/{0}'.format(row[choice].strip())
+            new_path = 'IMG/TRANS_{0}'.format(row[choice].split('/')[-1])
+            img = cv2.imread(img_path)
+            print img_path, img, os.path.isfile(img_path)
+            img, steer = trans_image(img, row['steering'], 150)
+            cv2.imwrite('data/{0}'.format(new_path), img)
+            addition[maxidx][choice] = new_path
+            if choice == 'center':
+                addition[maxidx]['steering'] = steer
+        maxidx += 1
+    new_df = pd.DataFrame.from_dict(addition, orient='index')
+    drive_df = drive_df.append(new_df)
+    drive_df.to_csv(path)
+
+
+def full_train(path_altered='data/altered_driving_log.csv', path_full='data/full_driving_log.csv'):
+    if not os.path.isfile(path_altered):
+        print("Creating Altered Files")
+        create_altered_drive_df(path_altered)
+        add_flipped_images(path_altered)
+    if not os.path.isfile(path_full):
+        print('Creating Translated Files')
+        drive_df = pd.read_csv(path_altered)
+        add_translated_images(drive_df, path_full)
+    import model
+    model.train(path=path_full, checkpoint_path="models/altered_comma_model_no_validate-{epoch:02d}.h5")
 
 def create_and_train_with_altered_images(path='data/altered_driving_log.csv'):
     import os
