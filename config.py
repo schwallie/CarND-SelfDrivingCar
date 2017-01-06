@@ -1,5 +1,6 @@
-import cv2
 import os
+
+import cv2
 import numpy as np
 import pandas as pd
 from keras.optimizers import Adam
@@ -19,6 +20,7 @@ OPTIMIZER = Adam(lr=LR)
 LOSS = 'mse'
 NB_EPOCH = 15
 BATCH_SIZE = 256
+
 
 def return_image(img, color_change=True):
     # Take out the dash and horizon
@@ -70,6 +72,7 @@ def trans_image(image, steer, trans_range):
     image_tr = cv2.warpAffine(image, Trans_M, (cols, rows))
     return image_tr, steer_ang
 
+
 def add_translated_images(drive_df, path, translated_image_per_image=5):
     maxidx = max(drive_df.index)
     addition = {}
@@ -81,7 +84,6 @@ def add_translated_images(drive_df, path, translated_image_per_image=5):
             img_path = 'data/{0}'.format(row[choice].strip())
             new_path = 'IMG/TRANS_{0}'.format(row[choice].split('/')[-1])
             img = cv2.imread(img_path)
-            print img_path, img, os.path.isfile(img_path)
             img, steer = trans_image(img, row['steering'], 150)
             cv2.imwrite('data/{0}'.format(new_path), img)
             addition[maxidx][choice] = new_path
@@ -92,6 +94,16 @@ def add_translated_images(drive_df, path, translated_image_per_image=5):
     drive_df = drive_df.append(new_df)
     drive_df.to_csv(path)
 
+
+def create_and_train_with_altered_images(path='data/altered_driving_log.csv'):
+    import os
+    if not os.path.isfile(path):
+        print("Creating Altered Files")
+        create_altered_drive_df(path)
+        add_flipped_images(path)
+    import model
+    model.train(path=path, checkpoint_path="models/altered_comma_model_no_validate-{epoch:02d}.h5")
+    
 
 def full_train(path_altered='data/altered_driving_log.csv', path_full='data/full_driving_log.csv'):
     if not os.path.isfile(path_altered):
@@ -104,15 +116,6 @@ def full_train(path_altered='data/altered_driving_log.csv', path_full='data/full
         add_translated_images(drive_df, path_full)
     import model
     model.train(path=path_full, checkpoint_path="models/altered_comma_model_no_validate-{epoch:02d}.h5")
-
-def create_and_train_with_altered_images(path='data/altered_driving_log.csv'):
-    import os
-    if not os.path.isfile(path):
-        print("Creating Altered Files")
-        create_altered_drive_df(path)
-        add_flipped_images(path)
-    import model
-    model.train(path=path, checkpoint_path="models/altered_comma_model_no_validate-{epoch:02d}.h5")
 
 
 """
