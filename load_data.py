@@ -16,11 +16,20 @@ def load_data(path='data/driving_log.csv'):  # altered_driving_log.csv
     y_data = []
     for cam_type in ['center', 'left', 'right']:
         drive_df[cam_type] = drive_df[cam_type].str.strip()
-        vals = drive_df[pd.notnull(drive_df[cam_type])][cam_type].values
-        arr = ['data/{0}'.format(f) for f in vals]
-        X_data.extend(arr)
-        y_cam_type = '{0}_steering'.format(cam_type)
-        y_data.extend(drive_df[pd.notnull(drive_df[cam_type])][y_cam_type].values)
+        piece = drive_df[pd.notnull(drive_df[cam_type])]
+        x_vals = piece[cam_type].values
+        y_vals = piece['{0}_steering'.format(cam_type)].values
+        arr_x = []
+        arr_y = []
+        for ix, f in enumerate(x_vals):
+            if abs(y_vals[ix]) < .1:
+                rnd = np.random.randint(4)
+                if rnd != 2:
+                    continue
+            arr_x.append('data/{0}'.format(f))
+            arr_y.append(y_vals[ix])
+        X_data.extend(arr_x)
+        y_data.extend(arr_y)
     y_data = np.float32(y_data)
     # Shuffle since I'm not doing validation
     # TODO: Make sure I didn't screw up anything with shuffle
