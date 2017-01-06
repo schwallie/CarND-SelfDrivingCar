@@ -103,7 +103,7 @@ def create_and_train_with_altered_images(path='data/altered_driving_log.csv'):
         add_flipped_images(path)
     import model
     model.train(path=path, checkpoint_path="models/altered_comma_model_no_validate-{epoch:02d}.h5")
-    
+
 
 def full_train(path_altered='data/altered_driving_log.csv', path_full='data/full_driving_log.csv'):
     if not os.path.isfile(path_altered):
