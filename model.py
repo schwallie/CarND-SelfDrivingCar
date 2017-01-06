@@ -87,9 +87,10 @@ def train(path='data/driving_log.csv', checkpoint_path="models/comma_model_no_va
     print(model.summary())
     print('X_train samples: {0}'.format(len(X_train)))
     print("Training..")
+    SAMPLES_PER_EPOCH = len(X_train) // config.BATCH_SIZE * config.BATCH_SIZE
     checkpoint = ModelCheckpoint(checkpoint_path, verbose=1, save_best_only=False, save_weights_only=True, mode='auto')
     model.fit_generator(generate_arrays(X_train, y_train),
-                        samples_per_epoch=config.SAMPLES_PER_EPOCH,
+                        samples_per_epoch=SAMPLES_PER_EPOCH,
                         nb_epoch=config.NB_EPOCH, verbose=1, callbacks=[checkpoint])
 
 

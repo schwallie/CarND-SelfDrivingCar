@@ -25,7 +25,6 @@ OPTIMIZER = Adam(lr=LR)
 LOSS = 'mse'
 NB_EPOCH = 15
 BATCH_SIZE = 256
-SAMPLES_PER_EPOCH = BATCH_SIZE * 50
 
 
 def return_image(img, color_change=True):
