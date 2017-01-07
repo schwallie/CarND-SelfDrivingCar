@@ -73,11 +73,22 @@ def get_comma_model():
 
 
 def generate_arrays(X_train, y_train):
-    while 1:
+    """while 1:
         for ix in range(math.floor(len(X_train) / config.BATCH_SIZE)):
             paths = X_train[ix * config.BATCH_SIZE:(ix + 1) * config.BATCH_SIZE]
             imgs = [config.return_image(cv2.imread(f)) for f in paths]
-            yield np.array(imgs), np.array(y_train[ix * config.BATCH_SIZE:(ix + 1) * config.BATCH_SIZE])
+        yield np.array(imgs), np.array(y_train[ix * config.BATCH_SIZE:(ix + 1) * config.BATCH_SIZE])"""
+    batch_images = np.zeros((config.BATCH_SIZE, config.IMAGE_WIDTH, config.IMAGE_HEIGHT, 3))
+    batch_steering = np.zeros(config.BATCH_SIZE)
+    while 1:
+        for i_batch in range(config.BATCH_SIZE):
+            i_line = np.random.randint(len(X_train))
+            img = X_train[i_line]
+            x = config.return_image(cv2.imread(img))
+            y = y_train[i_line]
+            batch_images[i_batch] = x
+            batch_steering[i_batch] = y
+        yield batch_images, batch_steering
 
 
 def train(path='data/driving_log.csv', checkpoint_path="models/comma_model_no_validate-{epoch:02d}.h5"):

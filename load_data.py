@@ -10,8 +10,10 @@ def load_data(path='data/driving_log.csv'):  # altered_driving_log.csv
     drive_df['steering_smoothed'] = pd.rolling_mean(drive_df['steering'], 3)
     drive_df['steering_smoothed'] = drive_df['steering_smoothed'].fillna(0)
     # TODO: Try .08 instead of .25
-    drive_df['left_steering'] = drive_df['steering_smoothed'] + .08
-    drive_df['right_steering'] = drive_df['steering_smoothed'] - .08
+    offset=1.0
+    dist=20.0
+    drive_df['left_steering'] = drive_df['steering_smoothed'] + 1/20 * 360/( 2*np.pi) / 25.0
+    drive_df['right_steering'] = drive_df['steering_smoothed'] - 1/20 * 360/( 2*np.pi)  / 25.0
     drive_df = drive_df.rename(columns={'steering_smoothed': 'center_steering'})
     X_data = []
     y_data = []

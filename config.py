@@ -35,6 +35,7 @@ def return_image(img, color_change=True):
     assert crop_img.shape[1] == IMAGE_WIDTH_CROP
     if color_change:
         img = cv2.cvtColor(crop_img, cv2.COLOR_BGR2RGB)
+    # img = augment_brightness_camera_images(img)
     img = (cv2.resize(img, (IMAGE_WIDTH, IMAGE_HEIGHT), interpolation=cv2.INTER_AREA))
     return np.float32(img)
 
