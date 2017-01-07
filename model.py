@@ -1,5 +1,4 @@
 import json
-import math
 
 import cv2
 import numpy as np
@@ -8,7 +7,6 @@ from keras.layers import Convolution2D, ELU
 from keras.layers import Dense, Flatten
 from keras.layers.core import Lambda, Dropout
 from keras.models import Sequential
-from keras.models import model_from_json
 
 import config
 import load_data
@@ -65,11 +63,11 @@ def get_model():
     model.compile(loss=config.LOSS, optimizer=config.OPTIMIZER)
     return model
 
+
 def get_comma_model():
     model = comma_model()
     model.compile(loss=config.LOSS, optimizer=config.OPTIMIZER)
     return model
-
 
 
 def generate_arrays(X_train, y_train):
@@ -98,7 +96,7 @@ def train(path='data/driving_log.csv', checkpoint_path="models/comma_model_no_va
     print(model.summary())
     print('X_train samples: {0}'.format(len(X_train)))
     print("Training..")
-    SAMPLES_PER_EPOCH = len(X_train) // config.BATCH_SIZE * config.BATCH_SIZE
+    SAMPLES_PER_EPOCH = 20224  # len(X_train) // config.BATCH_SIZE * config.BATCH_SIZE
     checkpoint = ModelCheckpoint(checkpoint_path, verbose=1, save_best_only=False, save_weights_only=True, mode='auto')
     model.fit_generator(generate_arrays(X_train, y_train),
                         samples_per_epoch=SAMPLES_PER_EPOCH,
@@ -131,12 +129,9 @@ def save_comma_model(path):
         json.dump(json_string, f)
     model.save_weights('model.h5')
 
+
 def save_model(model):
     import json
     json_string = model.to_json()
     model.save_weights('model.h5')
     json.dump(json_string, open('model.json', 'w'))
-
-
-
-
