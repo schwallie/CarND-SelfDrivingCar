@@ -23,7 +23,7 @@ def load_data(path='data/driving_log.csv'):  # altered_driving_log.csv
         arr_y = []
         for ix, f in enumerate(x_vals):
             if abs(y_vals[ix]) < .1:
-                rnd = np.random.randint(4)
+                rnd = np.random.randint(8)
                 if rnd != 2:
                     continue
             arr_x.append('data/{0}'.format(f))
