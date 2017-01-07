@@ -78,7 +78,7 @@ def generate_arrays(X_train, y_train):
             paths = X_train[ix * config.BATCH_SIZE:(ix + 1) * config.BATCH_SIZE]
             imgs = [config.return_image(cv2.imread(f)) for f in paths]
         yield np.array(imgs), np.array(y_train[ix * config.BATCH_SIZE:(ix + 1) * config.BATCH_SIZE])"""
-    batch_images = np.zeros((config.BATCH_SIZE, config.IMAGE_WIDTH, config.IMAGE_HEIGHT, 3))
+    batch_images = np.zeros((config.BATCH_SIZE, config.IMAGE_HEIGHT, config.IMAGE_WIDTH, 3))
     batch_steering = np.zeros(config.BATCH_SIZE)
     while 1:
         for i_batch in range(config.BATCH_SIZE):
