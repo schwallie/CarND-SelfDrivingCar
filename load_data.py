@@ -19,15 +19,19 @@ def load_data(path='data/driving_log.csv'):  # altered_driving_log.csv
         piece = drive_df[pd.notnull(drive_df[cam_type])]
         x_vals = piece[cam_type].values
         y_vals = piece['{0}_steering'.format(cam_type)].values
+        orig_steer_vals = piece['steering'].values
         arr_x = []
         arr_y = []
         for ix, f in enumerate(x_vals):
-            if abs(y_vals[ix]) < .1:
-                rnd = np.random.randint(8)
+            y = y_vals[ix]
+            if abs(y) < .1:
+                rnd = np.random.randint(6)
                 if rnd != 2:
                     continue
+            if 'FLIPPED' in f and orig_steer_vals[ix] == 0:
+                continue
             arr_x.append('data/{0}'.format(f))
-            arr_y.append(y_vals[ix])
+            arr_y.append(y)
         X_data.extend(arr_x)
         y_data.extend(arr_y)
     y_data = np.float32(y_data)
