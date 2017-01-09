@@ -37,7 +37,7 @@ SMOOTH_STEERING = True
 STEER_SMOOTHING_WINDOW = 3
 
 TAKE_OUT_FLIPPED_0_STEERING = True
-TAKE_OUT_TRANSLATED_IMGS = True
+TAKE_OUT_TRANSLATED_IMGS = False
 # Too many vals at 0 steering, need to take some out to prevent driving straight
 KEEP_ALL_0_STEERING_VALS = False
 KEEP_1_OVER_X_0_STEERING_VALS = 5
@@ -49,6 +49,7 @@ DEL_IMAGES = ['center_2016_12_01_13_38_02']
 
 def return_image(img, color_change=True):
     # Take out the dash and horizon
+    print(img)
     img_shape = img.shape
     crop_img = img[int(img_shape[0] / 5):img_shape[0] - 20, 0:img_shape[1]]
     assert crop_img.shape[0] == IMAGE_HEIGHT_CROP
