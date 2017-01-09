@@ -3,7 +3,7 @@ import os
 import cv2
 import numpy as np
 import pandas as pd
-import matplotlib.pyplot as plt
+# import matplotlib.pyplot as plt
 from keras.optimizers import Adam
 pd.set_option('display.height', 1000)
 pd.set_option('display.max_rows', 500)
@@ -28,6 +28,7 @@ BATCH_SIZE = 256
 ####
 #
 # This section is refered to in load_data.py
+# Keep i-0908e9b5131608d26
 #
 ####
 
