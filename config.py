@@ -49,7 +49,6 @@ DEL_IMAGES = ['center_2016_12_01_13_38_02']
 
 def return_image(img, color_change=True):
     # Take out the dash and horizon
-    print(img)
     img_shape = img.shape
     crop_img = img[int(img_shape[0] / 5):img_shape[0] - 20, 0:img_shape[1]]
     assert crop_img.shape[0] == IMAGE_HEIGHT_CROP
