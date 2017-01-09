@@ -38,9 +38,9 @@ def load_data(path='data/driving_log.csv'):  # altered_driving_log.csv
     if config.TAKE_OUT_FLIPPED_0_STEERING:
         final_df = final_df[~((final_df.img_path.str.contains('FLIPPED')) & (final_df['steering'] == 0))]
         print('Took out FLIPPED 0 steering: len: {0}'.format(len(final_df)))
-    print('Taking out a lot of 0 steering values...Current len: {0}'.format(len(final_df[final_df.steering])))
     # Take out some of the 'steering' angles of 0
     if not config.KEEP_ALL_0_STEERING_VALS:
+        print('Taking out a lot of 0 steering values...Current len: {0}'.format(len(final_df[final_df.steering == 0])))
         steer_0s = final_df[final_df.steering == 0].index
         # Cut out a certain portion of 0 steers and keep only the leftovers
         to_keep = int(len(steer_0s) / config.KEEP_1_OVER_X_0_STEERING_VALS)
@@ -48,6 +48,7 @@ def load_data(path='data/driving_log.csv'):  # altered_driving_log.csv
         final_df['ix'] = final_df.index
         final_df = final_df[final_df['ix'].isin(kept)]
         del final_df['ix']
+        print('Taking out a lot of 0 steering values...Current len: {0}'.format(len(final_df[final_df.steering == 0])))
     # Keep specific cameras only
     if config.CAMERAS_TO_USE == 1:
         final_df = final_df[final_df.img_path.str.contains('center')]
