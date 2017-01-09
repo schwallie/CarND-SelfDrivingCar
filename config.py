@@ -3,6 +3,7 @@ import os
 import cv2
 import numpy as np
 import pandas as pd
+import matplotlib.pyplot as plt
 from keras.optimizers import Adam
 pd.set_option('display.height', 1000)
 pd.set_option('display.max_rows', 500)
@@ -13,8 +14,6 @@ pd.set_option('display.width', 1000)
 IMAGE_HEIGHT_CROP = 108
 IMAGE_WIDTH_CROP = 320
 CHANNELS = 3
-# IMAGE_HEIGHT = 64
-# IMAGE_WIDTH = 64
 STEERING_ADJUSTMENT = 1
 AUTONOMOUS_THROTTLE = .1
 # (200, 66) <-- Original NVIDIA Paper
@@ -26,6 +25,26 @@ LOSS = 'mse'
 NB_EPOCH = 15
 BATCH_SIZE = 256
 
+####
+#
+# This section is refered to in load_data.py
+#
+####
+
+# Mean smoothing for the steering column
+SMOOTH_STEERING = True
+STEER_SMOOTHING_WINDOW = 3
+
+TAKE_OUT_FLIPPED_0_STEERING = True
+TAKE_OUT_TRANSLATED_IMGS = True
+# Too many vals at 0 steering, need to take some out to prevent driving straight
+KEEP_ALL_0_STEERING_VALS = False
+KEEP_1_OVER_X_0_STEERING_VALS = 5
+CAMERAS_TO_USE = 1
+# Steering adjustmenet for L/R images
+LR_STEERING_ADJUSTMENT = .08
+
+DEL_IMAGES = ['center_2016_12_01_13_38_02']
 
 def return_image(img, color_change=True):
     # Take out the dash and horizon
@@ -213,6 +232,41 @@ def full_train(path_altered='data/altered_driving_log.csv', path_altered_plus='d
     import model
     model.train(path=path_full, checkpoint_path="models/lr-full_comma_model_cut_out_0s_keep_throttle-{epoch:02d}.h5")
 
+
+def vis(df=None, rn=None, img_view='center', img=None):
+    """
+    Bad learning images:
+    IMG/center_2016_12_01_13_38_02_790.jpg
+    3200 - 3205 on full_driving, or IMG/center_2016_12_01_13_38_02_*
+    :param df:
+    :param rn:
+    :param img_view:
+    :param img:
+    :return:
+    """
+    if df is None:
+        # df = df[df.throttle > .25]
+        df = pd.read_csv('data/data/full_driving_log.csv')
+        df['steering_smoothed'] = pd.rolling_mean(df['steering'], 3)
+        df['steering_smoothed'] = df['steering_smoothed'].fillna(0)
+        df['left_steering'] = df['steering_smoothed'] + .05
+        df['right_steering'] = df['steering_smoothed'] - .05
+        df = df.rename(columns={'steering_smoothed': 'center_steering'})
+    if rn is None and img is None:
+        # RN is just a random number to choose an img to show
+        rn = np.random.randint(len(df))
+    elif img:
+        rn = df[df[img_view] == img].index[0]
+    path = 'data/data/{0}'.format(df.iloc[rn][img_view].strip())
+    print('{0}: {1}'.format(rn, path))
+    print(df.iloc[rn]['{0}_steering'.format(img_view)])
+    img = np.array(cv2.imread(path))
+    img_shape = img.shape
+    img = img[int(img_shape[0] / 5):img_shape[0] - 20, 0:img_shape[1]]
+    img = cv2.cvtColor(img, cv2.COLOR_BGR2RGB)
+    plt.imshow(img)
+    plt.show()
+    return df
 
 """
 Office Hours:

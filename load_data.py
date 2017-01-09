@@ -3,46 +3,73 @@ import pandas as pd
 from sklearn.model_selection import train_test_split
 from sklearn.utils import shuffle
 
+import config
+
 
 def load_data(path='data/driving_log.csv'):  # altered_driving_log.csv
     drive_df = pd.read_csv(path)
     # drive_df = drive_df[drive_df.throttle > .25]
-    drive_df['steering_smoothed'] = pd.rolling_mean(drive_df['steering'], 3)
-    drive_df['steering_smoothed'] = drive_df['steering_smoothed'].fillna(0)
-    drive_df['left_steering'] = drive_df['steering_smoothed'] + .05
-    drive_df['right_steering'] = drive_df['steering_smoothed'] - .05
+    if config.SMOOTH_STEERING:
+        drive_df['steering_smoothed'] = pd.rolling_mean(drive_df['steering'], config.STEER_SMOOTHING_WINDOW)
+        drive_df['steering_smoothed'] = drive_df['steering_smoothed'].fillna(0)
+    else:
+        drive_df['steering_smoothed'] = drive_df['steering']
+    drive_df['left_steering'] = drive_df['steering_smoothed'] + config.LR_STEERING_ADJUSTMENT
+    drive_df['right_steering'] = drive_df['steering_smoothed'] - config.LR_STEERING_ADJUSTMENT
+    drive_df.index = range(0, len(drive_df))
     drive_df = drive_df.rename(columns={'steering_smoothed': 'center_steering'})
-    X_data = []
-    y_data = []
-    for cam_type in ['center', 'left', 'right']:
-        drive_df[cam_type] = drive_df[cam_type].str.strip()
-        piece = drive_df[pd.notnull(drive_df[cam_type])]
-        x_vals = piece[cam_type].values
-        y_vals = piece['{0}_steering'.format(cam_type)].values
-        orig_steer_vals = piece['steering'].values
-        arr_x = []
-        arr_y = []
-        for ix, f in enumerate(x_vals):
-            y = y_vals[ix]
-            if abs(y) < .1:
-                rnd = np.random.randint(6)
-                if rnd != 2:
-                    continue
-            if 'FLIPPED' in f and orig_steer_vals[ix] == 0:
-                continue
-            arr_x.append('data/{0}'.format(f))
-            arr_y.append(y)
-        X_data.extend(arr_x)
-        y_data.extend(arr_y)
+    final_df = pd.concat(
+        [drive_df[pd.notnull(drive_df['left'])][['left', 'left_steering', 'steering']],
+         drive_df[pd.notnull(drive_df['center'])][['center', 'center_steering', 'steering']],
+         drive_df[pd.notnull(drive_df['right'])][['right', 'right_steering', 'steering']]])
+    final_df = final_df.rename(columns={'center': 'img_path', 'center_steering': 'steering_smoothed'})
+    final_df['img_path'] = final_df['img_path'].fillna(final_df['right'])
+    final_df['img_path'] = final_df['img_path'].fillna(final_df['left'])
+    final_df['steering_smoothed'] = final_df['steering_smoothed'].fillna(final_df['left_steering'])
+    final_df['steering_smoothed'] = final_df['steering_smoothed'].fillna(final_df['right_steering'])
+    for to_del in ['left', 'right', 'left_steering', 'right_steering']:
+        if to_del in final_df.columns:
+            del final_df[to_del]
+    final_df.index = range(0, len(final_df))
+    print('Length of Final DF Before Cutting: {0}'.format(len(final_df)))
+    if config.TAKE_OUT_TRANSLATED_IMGS:
+        final_df = final_df[final_df.img_path.str.contains('TRANS')]
+        print('Took out translations: len: {0}'.format(len(final_df)))
+    if config.TAKE_OUT_FLIPPED_0_STEERING:
+        final_df = final_df[~((final_df.img_path.str.contains('FLIPPED')) & (final_df['steering'] == 0))]
+        print('Took out FLIPPED 0 steering: len: {0}'.format(len(final_df)))
+    print('Taking out a lot of 0 steering values...Current len: {0}'.format(len(final_df[final_df.steering])))
+    # Take out some of the 'steering' angles of 0
+    if not config.KEEP_ALL_0_STEERING_VALS:
+        steer_0s = final_df[final_df.steering == 0].index
+        # Cut out a certain portion of 0 steers and keep only the leftovers
+        to_keep = int(len(steer_0s) / config.KEEP_1_OVER_X_0_STEERING_VALS)
+        kept = np.random.choice(steer_0s, size=to_keep)
+        final_df['ix'] = final_df.index
+        final_df = final_df[final_df['ix'].isin(kept)]
+        del final_df['ix']
+    # Keep specific cameras only
+    if config.CAMERAS_TO_USE == 1:
+        final_df = final_df[final_df.img_path.str.contains('center')]
+        # TODO: Allow only L/R
+    # Deleting some bad data
+    for del_img in config.DEL_IMAGES:
+        final_df = final_df[~(final_df.img_path.str.contains(del_img))]
+    ####
+    #
+    # Done adjusting images
+    #
+    ####
+    X_data = final_df.img_path.values
+    if config.SMOOTH_STEERING:
+        y_data = final_df.steering_smoothed.values
+    else:
+        y_data = final_df.steering.values
     y_data = np.float32(y_data)
     # Shuffle since I'm not doing validation
-    # TODO: Make sure I didn't screw up anything with shuffle
     return shuffle(X_data, y_data)
 
 
 def return_validation(path='data/driving_log.csv'):
     X_data, y_data = load_data(path=path)
     return train_test_split(X_data, y_data, test_size=.05, random_state=43)
-
-
-
