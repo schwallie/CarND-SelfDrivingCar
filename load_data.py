@@ -47,7 +47,7 @@ def load_data(path='data/driving_log.csv'):  # altered_driving_log.csv
         to_keep = int(len(steer_0s) / config.KEEP_1_OVER_X_0_STEERING_VALS)
         kept = np.random.choice(steer_0s, size=to_keep)
         final_df['ix'] = final_df.index
-        final_df = final_df[final_df['ix'].isin(kept)]
+        final_df = final_df[(final_df['ix'].isin(kept)) | (final_df['steering'] != 0)]
         del final_df['ix']
         print('Taking out a lot of 0 steering values...Current len: {0}'.format(len(final_df[final_df.steering == 0])))
     # Keep specific cameras only
