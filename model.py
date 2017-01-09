@@ -82,8 +82,7 @@ def generate_arrays(X_train, y_train):
         for i_batch in range(config.BATCH_SIZE):
             i_line = np.random.randint(len(X_train))
             img = X_train[i_line]
-            print(img)
-            x = config.return_image(cv2.imread(img))
+            x = config.return_image(cv2.imread('data/{0}'.format(img)))
             y = y_train[i_line]
             batch_images[i_batch] = x
             batch_steering[i_batch] = y
