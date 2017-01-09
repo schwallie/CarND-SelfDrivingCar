@@ -33,7 +33,7 @@ def load_data(path='data/driving_log.csv'):  # altered_driving_log.csv
     final_df.index = range(0, len(final_df))
     print('Length of Final DF Before Cutting: {0}'.format(len(final_df)))
     if config.TAKE_OUT_TRANSLATED_IMGS:
-        final_df = final_df[final_df.img_path.str.contains('TRANS')]
+        final_df = final_df[~final_df.img_path.str.contains('TRANS')]
         print('Took out translations: len: {0}'.format(len(final_df)))
     if config.TAKE_OUT_FLIPPED_0_STEERING:
         final_df = final_df[~((final_df.img_path.str.contains('FLIPPED')) & (final_df['steering'] == 0))]
@@ -43,6 +43,7 @@ def load_data(path='data/driving_log.csv'):  # altered_driving_log.csv
         print('Taking out a lot of 0 steering values...Current len: {0}'.format(len(final_df[final_df.steering == 0])))
         steer_0s = final_df[final_df.steering == 0].index
         # Cut out a certain portion of 0 steers and keep only the leftovers
+        print(len(steer_0s))
         to_keep = int(len(steer_0s) / config.KEEP_1_OVER_X_0_STEERING_VALS)
         kept = np.random.choice(steer_0s, size=to_keep)
         final_df['ix'] = final_df.index
@@ -52,10 +53,12 @@ def load_data(path='data/driving_log.csv'):  # altered_driving_log.csv
     # Keep specific cameras only
     if config.CAMERAS_TO_USE == 1:
         final_df = final_df[final_df.img_path.str.contains('center')]
+        print('Only allowed CENTER values: {0}'.format(len(final_df)))
         # TODO: Allow only L/R
     # Deleting some bad data
     for del_img in config.DEL_IMAGES:
         final_df = final_df[~(final_df.img_path.str.contains(del_img))]
+    print('Deleted specifically annotated BAD IMAGES: {0}'.format(len(final_df)))
     ####
     #
     # Done adjusting images
