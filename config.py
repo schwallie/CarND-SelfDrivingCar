@@ -36,10 +36,10 @@ SMOOTH_STEERING = True
 STEER_SMOOTHING_WINDOW = 3
 
 TAKE_OUT_FLIPPED_0_STEERING = True
-TAKE_OUT_TRANSLATED_IMGS = True
+TAKE_OUT_TRANSLATED_IMGS = False
 # Too many vals at 0 steering, need to take some out to prevent driving straight
 KEEP_ALL_0_STEERING_VALS = False
-KEEP_1_OVER_X_0_STEERING_VALS = 5
+KEEP_1_OVER_X_0_STEERING_VALS = 4
 CAMERAS_TO_USE = 1
 # Steering adjustmenet for L/R images
 LR_STEERING_ADJUSTMENT = .08
@@ -230,7 +230,7 @@ def full_train(path_altered='data/altered_driving_log.csv', path_altered_plus='d
         drive_df = pd.read_csv(path_altered_plus)
         add_brightness_augmented_images(drive_df, path_full)
     import model
-    model.train(path=path_full, checkpoint_path="models/full_new_load_only_center_no_trans-{epoch:02d}.h5")
+    model.train(path=path_full, checkpoint_path="models/full_new_load_only_center_keep_trans-{epoch:02d}.h5")
 
 
 def vis(df=None, rn=None, img_view='center', img=None):

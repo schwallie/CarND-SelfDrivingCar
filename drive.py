@@ -1,7 +1,5 @@
-import argparse
 import base64
 from io import BytesIO
-import cv2
 import eventlet.wsgi
 import numpy as np
 import socketio
