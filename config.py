@@ -3,7 +3,6 @@ import os
 import cv2
 import numpy as np
 import pandas as pd
-# import matplotlib.pyplot as plt
 from keras.optimizers import Adam
 pd.set_option('display.height', 1000)
 pd.set_option('display.max_rows', 500)
@@ -245,6 +244,7 @@ def vis(df=None, rn=None, img_view='center', img=None):
     :param img:
     :return:
     """
+    import matplotlib.pyplot as plt
     if df is None:
         # df = df[df.throttle > .25]
         df = pd.read_csv('data/data/full_driving_log.csv')
