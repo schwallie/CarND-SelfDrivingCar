@@ -22,7 +22,7 @@ LR = 1e-5
 OPTIMIZER = Adam(lr=LR)
 LOSS = 'mse'
 NB_EPOCH = 15
-BATCH_SIZE = 256
+BATCH_SIZE = 128
 
 ####
 #
@@ -32,7 +32,7 @@ BATCH_SIZE = 256
 ####
 
 # Mean smoothing for the steering column
-SMOOTH_STEERING = True
+SMOOTH_STEERING = False
 STEER_SMOOTHING_WINDOW = 3
 
 TAKE_OUT_FLIPPED_0_STEERING = True
@@ -40,11 +40,30 @@ TAKE_OUT_TRANSLATED_IMGS = False
 # Too many vals at 0 steering, need to take some out to prevent driving straight
 KEEP_ALL_0_STEERING_VALS = False
 KEEP_1_OVER_X_0_STEERING_VALS = 4
-CAMERAS_TO_USE = 1
+CAMERAS_TO_USE = 3 # 1 for Center, 3 for L/R/C
 # Steering adjustmenet for L/R images
 LR_STEERING_ADJUSTMENT = .08
 
 DEL_IMAGES = ['center_2016_12_01_13_38_02']
+
+
+def full_train(path_altered='data/altered_driving_log.csv', path_altered_plus='data/altered_plus_driving_log.csv',
+               path_full='data/full_driving_log.csv'):
+    if not os.path.isfile(path_altered):
+        print("Creating Altered Files")
+        create_altered_drive_df(path_altered)
+        add_flipped_images(path_altered)
+    if not os.path.isfile(path_altered_plus):
+        print('Creating Translated Files')
+        drive_df = pd.read_csv(path_altered)
+        add_translated_images(drive_df, path_altered_plus)
+    if not os.path.isfile(path_full):
+        print('Creating Brightness')
+        drive_df = pd.read_csv(path_altered_plus)
+        add_brightness_augmented_images(drive_df, path_full)
+    import model
+    model.train(path=path_full, checkpoint_path="models/full_new_lrc_no_smooth-{epoch:02d}.h5")
+
 
 def return_image(img, color_change=True):
     # Take out the dash and horizon
@@ -213,25 +232,6 @@ def train_altered_and_translated_train(path_altered='data/altered_driving_log.cs
         add_translated_images(drive_df, path_altered_plus)
     import model
     model.train(path=path_altered_plus, checkpoint_path="models/full_comma_model_no_validate-{epoch:02d}.h5")
-
-
-def full_train(path_altered='data/altered_driving_log.csv', path_altered_plus='data/altered_plus_driving_log.csv',
-               path_full='data/full_driving_log.csv'):
-    if not os.path.isfile(path_altered):
-        print("Creating Altered Files")
-        create_altered_drive_df(path_altered)
-        add_flipped_images(path_altered)
-    if not os.path.isfile(path_altered_plus):
-        print('Creating Translated Files')
-        drive_df = pd.read_csv(path_altered)
-        add_translated_images(drive_df, path_altered_plus)
-    if not os.path.isfile(path_full):
-        print('Creating Brightness')
-        drive_df = pd.read_csv(path_altered_plus)
-        add_brightness_augmented_images(drive_df, path_full)
-    import model
-    model.train(path=path_full, checkpoint_path="models/full_new_load_only_center_keep_trans-{epoch:02d}.h5")
-
 
 def vis(df=None, rn=None, img_view='center', img=None):
     """
