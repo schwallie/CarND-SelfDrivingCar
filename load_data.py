@@ -15,8 +15,8 @@ def load_data(path='data/full_driving_log.csv'):  # altered_driving_log.csv
         drive_df['steering_smoothed'] = drive_df['steering_smoothed'].fillna(0)
     else:
         drive_df['steering_smoothed'] = drive_df['steering']
-    drive_df['left_steering'] = drive_df['steering_smoothed'] + config.LR_STEERING_ADJUSTMENT
-    drive_df['right_steering'] = drive_df['steering_smoothed'] - config.LR_STEERING_ADJUSTMENT
+    drive_df['left_steering'] = drive_df['steering_smoothed'] + config.L_STEERING_ADJUSTMENT
+    drive_df['right_steering'] = drive_df['steering_smoothed'] - config.R_STEERING_ADJUSTMENT
     drive_df.index = range(0, len(drive_df))
     drive_df = drive_df.rename(columns={'steering_smoothed': 'center_steering'})
     final_df = pd.concat(

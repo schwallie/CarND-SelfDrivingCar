@@ -42,7 +42,8 @@ KEEP_ALL_0_STEERING_VALS = False
 KEEP_1_OVER_X_0_STEERING_VALS = 4
 CAMERAS_TO_USE = 3  # 1 for Center, 3 for L/R/C
 # Steering adjustmenet for L/R images
-LR_STEERING_ADJUSTMENT = .15
+L_STEERING_ADJUSTMENT = .10
+R_STEERING_ADJUSTMENT = .25
 
 # Even out skew on L/R steering angles
 EVEN_OUT_LR_STEERING_ANGLES = True
