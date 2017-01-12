@@ -44,6 +44,9 @@ CAMERAS_TO_USE = 3  # 1 for Center, 3 for L/R/C
 # Steering adjustmenet for L/R images
 LR_STEERING_ADJUSTMENT = .15
 
+# Even out skew on L/R steering angles
+EVEN_OUT_LR_STEERING_ANGLES = True
+
 DEL_IMAGES = ['center_2016_12_01_13_38_02']
 
 

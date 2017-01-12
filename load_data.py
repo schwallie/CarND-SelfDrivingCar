@@ -6,11 +6,12 @@ from sklearn.utils import shuffle
 import config
 
 
-def load_data(path='data/driving_log.csv'):  # altered_driving_log.csv
+def load_data(path='data/full_driving_log.csv'):  # altered_driving_log.csv
     drive_df = pd.read_csv(path)
     # drive_df = drive_df[drive_df.throttle > .25]
     if config.SMOOTH_STEERING:
-        drive_df['steering_smoothed'] = pd.rolling_mean(drive_df['steering'], config.STEER_SMOOTHING_WINDOW)
+        drive_df['steering_smoothed'] = drive_df['steering'].rolling(center=False,
+                                                                     window=config.STEER_SMOOTHING_WINDOW).mean()
         drive_df['steering_smoothed'] = drive_df['steering_smoothed'].fillna(0)
     else:
         drive_df['steering_smoothed'] = drive_df['steering']
@@ -40,16 +41,18 @@ def load_data(path='data/driving_log.csv'):  # altered_driving_log.csv
         print('Took out FLIPPED 0 steering: len: {0}'.format(len(final_df)))
     # Take out some of the 'steering' angles of 0
     if not config.KEEP_ALL_0_STEERING_VALS:
-        print('Taking out a lot of 0 steering values...Current len of 0s: {0}'.format(len(final_df[final_df.steering == 0])))
+        print(
+            'Taking out a lot of 0 steering values...Current len of 0s: {0}'.format(
+                len(final_df[final_df.steering == 0])))
         steer_0s = final_df[final_df.steering == 0].index
         # Cut out a certain portion of 0 steers and keep only the leftovers
-        print(len(steer_0s))
         to_keep = int(len(steer_0s) / config.KEEP_1_OVER_X_0_STEERING_VALS)
         kept = np.random.choice(steer_0s, size=to_keep)
         final_df['ix'] = final_df.index
         final_df = final_df[(final_df['ix'].isin(kept)) | (final_df['steering'] != 0)]
         del final_df['ix']
-        print('Taking out a lot of 0 steering values...New len of 0s: {0}, Total: {1}'.format(len(final_df[final_df.steering == 0]), len(final_df)))
+        print('Taking out a lot of 0 steering values...New len of 0s: {0}, Total: {1}'.format(
+            len(final_df[final_df.steering == 0]), len(final_df)))
     # Keep specific cameras only
     if config.CAMERAS_TO_USE == 1:
         final_df = final_df[final_df.img_path.str.contains('center')]
@@ -59,16 +62,35 @@ def load_data(path='data/driving_log.csv'):  # altered_driving_log.csv
     for del_img in config.DEL_IMAGES:
         final_df = final_df[~(final_df.img_path.str.contains(del_img))]
     print('Deleted specifically annotated BAD IMAGES: {0}'.format(len(final_df)))
+    if config.SMOOTH_STEERING:
+        steering = 'steering_smoothed'
+    else:
+        steering = 'steering'
+    if config.EVEN_OUT_LR_STEERING_ANGLES:
+        pos = final_df[(final_df[steering] > 0) & (final_df[steering] < .1)]
+        neg = final_df[(final_df[steering] < 0) & (final_df[steering > -.1])]
+        print('Positive Steering: {0}, Negative Steering: {1}'.format(len(pos),
+                                                                      len(neg)))
+        # Taking out small angles only that are L or R
+        if pos > neg:
+            diff = pos - neg
+            options = pos.index
+        else:
+            diff = neg - pos
+            options = neg.index
+        deleted = np.random.choice(options, size=diff)
+        final_df['ix'] = final_df.index
+        final_df = final_df[~(final_df['ix'].isin(deleted))]
+        del final_df['ix']
+        print('Positive Steering: {0}, Negative Steering: {1}'.format(len(final_df[final_df[steering] > 0]),
+                                                                  len(final_df[final_df[steering] < 0])))
     ####
     #
     # Done adjusting images
     #
     ####
     X_data = final_df.img_path.values
-    if config.SMOOTH_STEERING:
-        y_data = final_df.steering_smoothed.values
-    else:
-        y_data = final_df.steering.values
+    y_data = final_df[steering].values
     y_data = np.float32(y_data)
     # Shuffle since I'm not doing validation
     return shuffle(X_data, y_data)

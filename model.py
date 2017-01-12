@@ -89,7 +89,7 @@ def generate_arrays(X_train, y_train):
         yield batch_images, batch_steering
 
 
-def train(path='data/driving_log.csv', checkpoint_path="models/comma_model_no_validate-{epoch:02d}.h5"):
+def train(path='data/full_driving_log.csv', checkpoint_path="models/comma_model_no_validate-{epoch:02d}.h5"):
     model = get_comma_model()
     print("Loaded model")
     X_train, y_train = load_data.load_data(path=path)
