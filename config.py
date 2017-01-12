@@ -40,7 +40,7 @@ TAKE_OUT_TRANSLATED_IMGS = False
 TAKE_OUT_NONCENTER_TRANSLATED_IMAGES = True
 # Too many vals at 0 steering, need to take some out to prevent driving straight
 KEEP_ALL_0_STEERING_VALS = False
-KEEP_1_OVER_X_0_STEERING_VALS = 4
+KEEP_1_OVER_X_0_STEERING_VALS = 2 # Lower == More kept images at 0 steering
 CAMERAS_TO_USE = 3  # 1 for Center, 3 for L/R/C
 # Steering adjustmenet for L/R images
 L_STEERING_ADJUSTMENT = .15
@@ -217,31 +217,6 @@ def add_brightness_augmented_images(drive_df, path):
     new_df = pd.DataFrame.from_dict(addition, orient='index')
     drive_df = drive_df.append(new_df)
     drive_df.to_csv(path)
-
-
-def create_and_train_with_altered_images(path='data/altered_driving_log.csv'):
-    import os
-    if not os.path.isfile(path):
-        print("Creating Altered Files")
-        create_altered_drive_df(path)
-        add_flipped_images(path)
-    import model
-    model.train(path=path, checkpoint_path="models/altered_comma_model_no_validate-{epoch:02d}.h5")
-
-
-def train_altered_and_translated_train(path_altered='data/altered_driving_log.csv',
-                                       path_altered_plus='data/altered_plus_driving_log.csv'):
-    if not os.path.isfile(path_altered):
-        print("Creating Altered Files")
-        create_altered_drive_df(path_altered)
-        add_flipped_images(path_altered)
-    if not os.path.isfile(path_altered_plus):
-        print('Creating Translated Files')
-        drive_df = pd.read_csv(path_altered)
-        add_translated_images(drive_df, path_altered_plus)
-    import model
-    model.train(path=path_altered_plus, checkpoint_path="models/full_comma_model_no_validate-{epoch:02d}.h5")
-
 
 def vis(df=None, rn=None, img_view='center', img=None):
     """

@@ -1,5 +1,3 @@
-import json
-
 import cv2
 import numpy as np
 from keras.callbacks import ModelCheckpoint
@@ -58,18 +56,6 @@ def comma_model():
     return model
 
 
-def get_model():
-    model = steering_net()
-    model.compile(loss=config.LOSS, optimizer=config.OPTIMIZER)
-    return model
-
-
-def get_comma_model():
-    model = comma_model()
-    model.compile(loss=config.LOSS, optimizer=config.OPTIMIZER)
-    return model
-
-
 def generate_arrays(X_train, y_train):
     """while 1:
         for ix in range(math.floor(len(X_train) / config.BATCH_SIZE)):
@@ -89,8 +75,9 @@ def generate_arrays(X_train, y_train):
         yield batch_images, batch_steering
 
 
-def train(path='data/full_driving_log.csv', checkpoint_path="models/comma_model_no_validate-{epoch:02d}.h5"):
-    model = get_comma_model()
+def train(path='data/full_driving_log.csv', checkpoint_path="models/comma_model_no_validate-{epoch:02d}.h5",
+          model=comma_model()):
+    model = get_model(model)
     print("Loaded model")
     X_train, y_train = load_data.load_data(path=path)
     print(model.summary())
@@ -103,29 +90,20 @@ def train(path='data/full_driving_log.csv', checkpoint_path="models/comma_model_
                         nb_epoch=config.NB_EPOCH, verbose=1, callbacks=[checkpoint])
 
 
-def load_saved_model(path):
-    model = get_model()
+def get_model(model=comma_model()):  # steering_net()
+    model.compile(loss=config.LOSS, optimizer=config.OPTIMIZER)
+    return model
+
+
+def load_saved_model(path, model=comma_model()):
+    model = get_model(model)
     model.load_weights(path)
     return model
 
 
-def save_model(model):
+def save_model(path, model=comma_model()):
     import json
-    json_string = model.to_json()
-    model.save_weights('model.h5')
-    json.dump(json_string, open('model.json', 'w'))
-
-
-def load_saved_comma_model():
-    model = get_comma_model()
-    model.load_weights('model.h5')
-    return model
-
-
-def save_comma_model(path):
-    model = get_comma_model()
     model.load_weights(path)
     json_string = model.to_json()
-    with open('model.json', 'w') as f:
-        json.dump(json_string, f)
+    json.dump(json_string, open('model.json', 'w'))
     model.save_weights('model.h5')
