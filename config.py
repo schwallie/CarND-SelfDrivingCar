@@ -37,13 +37,14 @@ STEER_SMOOTHING_WINDOW = 3
 
 TAKE_OUT_FLIPPED_0_STEERING = True
 TAKE_OUT_TRANSLATED_IMGS = False
+TAKE_OUT_NONCENTER_TRANSLATED_IMAGES = True
 # Too many vals at 0 steering, need to take some out to prevent driving straight
 KEEP_ALL_0_STEERING_VALS = False
 KEEP_1_OVER_X_0_STEERING_VALS = 4
 CAMERAS_TO_USE = 3  # 1 for Center, 3 for L/R/C
 # Steering adjustmenet for L/R images
-L_STEERING_ADJUSTMENT = .10
-R_STEERING_ADJUSTMENT = .25
+L_STEERING_ADJUSTMENT = .15
+R_STEERING_ADJUSTMENT = .15
 
 # Even out skew on L/R steering angles
 EVEN_OUT_LR_STEERING_ANGLES = True
@@ -92,6 +93,8 @@ def add_flipped_images(path):
     maxidx = max(drive_df.index)
     addition = {}
     for idx, row in drive_df.iterrows():
+        if row['steering'] == 0:
+            continue
         rnd = np.random.randint(2)
         # if rnd == 1:
         maxidx += 1
@@ -124,7 +127,7 @@ def trans_image(image, steer, trans_range):
 def add_translated_images(drive_df, path, translated_image_per_image=5):
     maxidx = max(drive_df.index)
     addition = {}
-    choices = ['center', 'left', 'right']
+    choices = ['center'] # 'left', 'right'
     # I only want to translate the original images with all 3 images avail, not flipped images
     for idx, row in drive_df[pd.notnull(drive_df['left'])].iterrows():
         addition[maxidx] = {}
@@ -132,6 +135,8 @@ def add_translated_images(drive_df, path, translated_image_per_image=5):
             img_path = 'data/{0}'.format(row[choice].strip())
             new_path = 'IMG/TRANS_{0}'.format(row[choice].split('/')[-1])
             img = cv2.imread(img_path)
+            #ERROR: If this is L/R I need to use row['steering'] +- ANGLE!!
+            # TODO: Be able to translate non-center
             img, steer = trans_image(img, row['steering'], 150)
             cv2.imwrite('data/{0}'.format(new_path), img)
             addition[maxidx][choice] = new_path

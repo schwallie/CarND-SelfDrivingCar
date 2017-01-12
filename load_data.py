@@ -35,6 +35,11 @@ def load_data(path='data/full_driving_log.csv'):  # altered_driving_log.csv
     for to_del in ['left', 'right', 'left_steering', 'right_steering']:
         if to_del in final_df.columns:
             del final_df[to_del]
+    # Editing L/R Angles
+    final_df.loc[final_df.img_path.str.contains('left'), steering] = final_df.loc[final_df.img_path.str.contains(
+        'left'), steering] + config.L_STEERING_ADJUSTMENT
+    final_df.loc[final_df.img_path.str.contains('right'), steering] = final_df.loc[final_df.img_path.str.contains(
+        'right'), steering] - config.R_STEERING_ADJUSTMENT
     final_df.index = range(0, len(final_df))
     print('Length of Final DF Before Cutting: {0}'.format(len(final_df)))
     if config.EVEN_OUT_LR_STEERING_ANGLES:
@@ -57,16 +62,14 @@ def load_data(path='data/full_driving_log.csv'):  # altered_driving_log.csv
             pos = final_df[(final_df[steering] > rng[0]) & (final_df[steering] <= rng[1])]
             neg = final_df[(final_df[steering] < -rng[0]) & (final_df[steering] >= -rng[1])]
             print('END: Positive Steering: {0}, Negative Steering: {1}'.format(len(pos),
-                                                                          len(neg)))
+                                                                               len(neg)))
         pos = final_df[(final_df[steering] > 0)]
         neg = final_df[(final_df[steering] < 0)]
         print('FINAL: Positive Steering: {0}, Negative Steering: {1}'.format(len(pos),
-                                                                           len(neg)))
-    # Editing L/R Angles
-    final_df.loc[final_df.img_path.str.contains('left'), steering] = final_df.loc[final_df.img_path.str.contains(
-        'left'), steering] + config.L_STEERING_ADJUSTMENT
-    final_df.loc[final_df.img_path.str.contains('right'), steering] = final_df.loc[final_df.img_path.str.contains(
-        'right'), steering] - config.R_STEERING_ADJUSTMENT
+                                                                             len(neg)))
+    if config.TAKE_OUT_NONCENTER_TRANSLATED_IMAGES:
+        final_df = final_df[(~final_df.img_path.str.contains('TRANS_left')) & (~final_df.img_path.str.contains('TRANS_right'))]
+        print('Took out non-center translations: len: {0}'.format(len(final_df)))
     if config.TAKE_OUT_TRANSLATED_IMGS:
         final_df = final_df[~final_df.img_path.str.contains('TRANS')]
         print('Took out translations: len: {0}'.format(len(final_df)))
@@ -108,11 +111,20 @@ def load_data(path='data/full_driving_log.csv'):  # altered_driving_log.csv
     # Shuffle since I'm not doing validation
     return shuffle(X_data, y_data)
 
+
 def print_data_makeup(final_df, steering):
     pos = final_df[(final_df[steering] > 0)]
     neg = final_df[(final_df[steering] < 0)]
-    print('FINAL: Positive Steering: {0}, Negative Steering: {1}'.format(len(pos),
-                                                                         len(neg)))
+    zero = final_df[final_df[steering] == 0]
+    print('FINAL: Positive Steering: {0}, Negative Steering: {1}, 0 Angle Steering: {2}'.format(len(pos),
+                                                                                          len(neg), len(zero)))
+    print('Low Angle Steering: <.05, {0}'.format(len(final_df[abs(final_df[steering]) < .05])))
+    print('Translated Images: {0}'.format(len(final_df[final_df.img_path.str.contains('TRANS')])))
+    print('Brightened Images: {0}'.format(len(final_df[final_df.img_path.str.contains('BRIGHT')])))
+    print('Flipped Images: {0}'.format(len(final_df[final_df.img_path.str.contains('FLIP')])))
+    print('Left Images: {0}, Right Images: {1}, Center Images: {2}'.format(
+        len(final_df[final_df.img_path.str.contains('left')]), len(final_df[final_df.img_path.str.contains('right')]),
+        len(final_df[final_df.img_path.str.contains('center')])))
 
 
 def return_validation(path='data/driving_log.csv'):
