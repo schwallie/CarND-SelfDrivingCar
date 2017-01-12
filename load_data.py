@@ -66,6 +66,7 @@ def load_data(path='data/full_driving_log.csv'):  # altered_driving_log.csv
         steering = 'steering_smoothed'
     else:
         steering = 'steering'
+    final_df[steering] = final_df[steering].astype(float)
     if config.EVEN_OUT_LR_STEERING_ANGLES:
         pos = final_df[(final_df[steering] > 0) & (final_df[steering] < .1)]
         neg = final_df[(final_df[steering] < 0) & (final_df[steering > -.1])]
