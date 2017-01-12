@@ -33,6 +33,10 @@ def load_data(path='data/full_driving_log.csv'):  # altered_driving_log.csv
             del final_df[to_del]
     final_df.index = range(0, len(final_df))
     print('Length of Final DF Before Cutting: {0}'.format(len(final_df)))
+    if config.SMOOTH_STEERING:
+        steering = 'steering_smoothed'
+    else:
+        steering = 'steering'
     if config.TAKE_OUT_TRANSLATED_IMGS:
         final_df = final_df[~final_df.img_path.str.contains('TRANS')]
         print('Took out translations: len: {0}'.format(len(final_df)))
@@ -62,28 +66,27 @@ def load_data(path='data/full_driving_log.csv'):  # altered_driving_log.csv
     for del_img in config.DEL_IMAGES:
         final_df = final_df[~(final_df.img_path.str.contains(del_img))]
     print('Deleted specifically annotated BAD IMAGES: {0}'.format(len(final_df)))
-    if config.SMOOTH_STEERING:
-        steering = 'steering_smoothed'
-    else:
-        steering = 'steering'
     if config.EVEN_OUT_LR_STEERING_ANGLES:
-        pos = final_df[(final_df[steering] > 0) & (final_df[steering] < .1)]
-        neg = final_df[(final_df[steering] < 0) & (final_df[steering] > -.1)]
-        print('Positive Steering: {0}, Negative Steering: {1}'.format(len(pos),
-                                                                      len(neg)))
-        # Taking out small angles only that are L or R
-        if len(pos) > len(neg):
-            diff = len(pos) - len(neg)
-            options = pos.index
-        else:
-            diff = len(neg) - len(pos)
-            options = neg.index
-        deleted = np.random.choice(options, size=diff)
-        final_df['ix'] = final_df.index
-        final_df = final_df[~(final_df['ix'].isin(deleted))]
-        del final_df['ix']
-        print('Positive Steering: {0}, Negative Steering: {1}'.format(len(final_df[final_df[steering] > 0]),
-                                                                  len(final_df[final_df[steering] < 0])))
+        for rng in [[0, .1], [.1, .2], [.2, .5]]:
+            pos = final_df[(final_df[steering] > rng[0]) & (final_df[steering] <= rng[1])]
+            neg = final_df[(final_df[steering] < -rng[0]) & (final_df[steering] >= -rng[1])]
+            print('Positive Steering: {0}, Negative Steering: {1}'.format(len(pos),
+                                                                          len(neg)))
+            # Taking out small angles only that are L or R
+            if len(pos) > len(neg):
+                diff = len(pos) - len(neg)
+                options = pos.index
+            else:
+                diff = len(neg) - len(pos)
+                options = neg.index
+            deleted = np.random.choice(options, size=diff)
+            final_df['ix'] = final_df.index
+            final_df = final_df[~(final_df['ix'].isin(deleted))]
+            del final_df['ix']
+            pos = final_df[(final_df[steering] > rng[0]) & (final_df[steering] <= rng[1])]
+            neg = final_df[(final_df[steering] < -rng[0]) & (final_df[steering] >= -rng[1])]
+            print('Positive Steering: {0}, Negative Steering: {1}'.format(len(pos),
+                                                                          len(neg)))
     ####
     #
     # Done adjusting images
