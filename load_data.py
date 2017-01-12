@@ -101,11 +101,18 @@ def load_data(path='data/full_driving_log.csv'):  # altered_driving_log.csv
     # Done adjusting images
     #
     ####
+    print_data_makeup(final_df, steering)
     X_data = final_df.img_path.values
     y_data = final_df[steering].values
     y_data = np.float32(y_data)
     # Shuffle since I'm not doing validation
     return shuffle(X_data, y_data)
+
+def print_data_makeup(final_df, steering):
+    pos = final_df[(final_df[steering] > 0)]
+    neg = final_df[(final_df[steering] < 0)]
+    print('FINAL: Positive Steering: {0}, Negative Steering: {1}'.format(len(pos),
+                                                                         len(neg)))
 
 
 def return_validation(path='data/driving_log.csv'):
