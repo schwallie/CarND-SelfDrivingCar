@@ -72,11 +72,11 @@ def load_data(path='data/full_driving_log.csv'):  # altered_driving_log.csv
         print('Positive Steering: {0}, Negative Steering: {1}'.format(len(pos),
                                                                       len(neg)))
         # Taking out small angles only that are L or R
-        if pos > neg:
-            diff = pos - neg
+        if len(pos) > len(neg):
+            diff = len(pos) - len(neg)
             options = pos.index
         else:
-            diff = neg - pos
+            diff = len(neg) - len(pos)
             options = neg.index
         deleted = np.random.choice(options, size=diff)
         final_df['ix'] = final_df.index
