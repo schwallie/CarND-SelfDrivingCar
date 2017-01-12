@@ -67,7 +67,7 @@ def full_train(path_altered='data/altered_driving_log.csv', path_altered_plus='d
         drive_df = pd.read_csv(path_altered_plus)
         add_brightness_augmented_images(drive_df, path_full)
     import model
-    model.train(path=path_full, checkpoint_path="models/full_new_lrc_del_skews-{epoch:02d}.h5")
+    model.train(path=path_full, checkpoint_path="models/full_new_64x64-{epoch:02d}.h5")
 
 
 def return_image(img, color_change=True):
