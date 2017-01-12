@@ -56,8 +56,12 @@ def load_data(path='data/full_driving_log.csv'):  # altered_driving_log.csv
             del final_df['ix']
             pos = final_df[(final_df[steering] > rng[0]) & (final_df[steering] <= rng[1])]
             neg = final_df[(final_df[steering] < -rng[0]) & (final_df[steering] >= -rng[1])]
-            print('Positive Steering: {0}, Negative Steering: {1}'.format(len(pos),
+            print('END: Positive Steering: {0}, Negative Steering: {1}'.format(len(pos),
                                                                           len(neg)))
+        pos = final_df[(final_df[steering] > 0)]
+        neg = final_df[(final_df[steering] < 0)]
+        print('FINAL: Positive Steering: {0}, Negative Steering: {1}'.format(len(pos),
+                                                                           len(neg)))
     # Editing L/R Angles
     final_df.loc[final_df.img_path.str.contains('left'), steering] = final_df.loc[final_df.img_path.str.contains(
         'left'), steering] + config.L_STEERING_ADJUSTMENT
