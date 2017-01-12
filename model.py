@@ -96,7 +96,7 @@ def train(path='data/driving_log.csv', checkpoint_path="models/comma_model_no_va
     print(model.summary())
     print('X_train samples: {0}'.format(len(X_train)))
     print("Training..")
-    SAMPLES_PER_EPOCH = 20224  # len(X_train) // config.BATCH_SIZE * config.BATCH_SIZE
+    SAMPLES_PER_EPOCH = len(X_train) // config.BATCH_SIZE * config.BATCH_SIZE
     checkpoint = ModelCheckpoint(checkpoint_path, verbose=1, save_best_only=False, save_weights_only=True, mode='auto')
     model.fit_generator(generate_arrays(X_train, y_train),
                         samples_per_epoch=SAMPLES_PER_EPOCH,
@@ -104,18 +104,19 @@ def train(path='data/driving_log.csv', checkpoint_path="models/comma_model_no_va
 
 
 def load_saved_model(path):
-    model = steering_net()
+    model = get_model()
     model.load_weights(path)
-    model.compile(loss=config.LOSS, optimizer=config.OPTIMIZER)
     return model
 
 
+def save_model(model):
+    import json
+    json_string = model.to_json()
+    model.save_weights('model.h5')
+    json.dump(json_string, open('model.json', 'w'))
+
+
 def load_saved_comma_model():
-    # with open('model.json', 'r') as jfile:
-    #    loaded = json.load(jfile)
-    #    model = model_from_json(loaded)
-    # model = model_from_json(json.load(open('model.json')))
-    # model.compile("adam", "mse")
     model = get_comma_model()
     model.load_weights('model.h5')
     return model
@@ -128,10 +129,3 @@ def save_comma_model(path):
     with open('model.json', 'w') as f:
         json.dump(json_string, f)
     model.save_weights('model.h5')
-
-
-def save_model(model):
-    import json
-    json_string = model.to_json()
-    model.save_weights('model.h5')
-    json.dump(json_string, open('model.json', 'w'))

@@ -4,11 +4,11 @@ import cv2
 import numpy as np
 import pandas as pd
 from keras.optimizers import Adam
+
 pd.set_option('display.height', 1000)
 pd.set_option('display.max_rows', 500)
 pd.set_option('display.max_columns', 500)
 pd.set_option('display.width', 1000)
-
 
 IMAGE_HEIGHT_CROP = 108
 IMAGE_WIDTH_CROP = 320
@@ -32,7 +32,7 @@ BATCH_SIZE = 128
 ####
 
 # Mean smoothing for the steering column
-SMOOTH_STEERING = False
+SMOOTH_STEERING = True
 STEER_SMOOTHING_WINDOW = 3
 
 TAKE_OUT_FLIPPED_0_STEERING = True
@@ -40,9 +40,9 @@ TAKE_OUT_TRANSLATED_IMGS = False
 # Too many vals at 0 steering, need to take some out to prevent driving straight
 KEEP_ALL_0_STEERING_VALS = False
 KEEP_1_OVER_X_0_STEERING_VALS = 4
-CAMERAS_TO_USE = 3 # 1 for Center, 3 for L/R/C
+CAMERAS_TO_USE = 3  # 1 for Center, 3 for L/R/C
 # Steering adjustmenet for L/R images
-LR_STEERING_ADJUSTMENT = .08
+LR_STEERING_ADJUSTMENT = .15
 
 DEL_IMAGES = ['center_2016_12_01_13_38_02']
 
@@ -62,7 +62,7 @@ def full_train(path_altered='data/altered_driving_log.csv', path_altered_plus='d
         drive_df = pd.read_csv(path_altered_plus)
         add_brightness_augmented_images(drive_df, path_full)
     import model
-    model.train(path=path_full, checkpoint_path="models/full_new_lrc_no_smooth-{epoch:02d}.h5")
+    model.train(path=path_full, checkpoint_path="models/full_new_lrc_bigger_adjust-{epoch:02d}.h5")
 
 
 def return_image(img, color_change=True):
@@ -233,6 +233,7 @@ def train_altered_and_translated_train(path_altered='data/altered_driving_log.cs
     import model
     model.train(path=path_altered_plus, checkpoint_path="models/full_comma_model_no_validate-{epoch:02d}.h5")
 
+
 def vis(df=None, rn=None, img_view='center', img=None):
     """
     Bad learning images:
@@ -268,6 +269,7 @@ def vis(df=None, rn=None, img_view='center', img=None):
     plt.imshow(img)
     plt.show()
     return df
+
 
 """
 Office Hours:
