@@ -71,7 +71,7 @@ def load_data(path='data/full_driving_log.csv', final_df='data/final_df.csv'):  
         for rng in [[0, .1], [.1, .2], [.2, .5]]:
             pos = final_df[(final_df[steering] > rng[0]) & (final_df[steering] <= rng[1])]
             neg = final_df[(final_df[steering] < -rng[0]) & (final_df[steering] >= -rng[1])]
-            print('Positive Steering: {0}, Negative Steering: {1}'.format(len(pos),
+            print('{0}, Positive Steering: {1}, Negative Steering: {2}'.format(rng, len(pos),
                                                                           len(neg)))
             # Taking out small angles only that are L or R
             if len(pos) > len(neg):
@@ -86,8 +86,8 @@ def load_data(path='data/full_driving_log.csv', final_df='data/final_df.csv'):  
             del final_df['ix']
             pos = final_df[(final_df[steering] > rng[0]) & (final_df[steering] <= rng[1])]
             neg = final_df[(final_df[steering] < -rng[0]) & (final_df[steering] >= -rng[1])]
-            print('END: Positive Steering: {0}, Negative Steering: {1}'.format(len(pos),
-                                                                               len(neg)))
+            print('END: {0}, Positive Steering: {1}, Negative Steering: {2}'.format(rng, len(pos),
+                                                                          len(neg)))
         pos = final_df[(final_df[steering] > 0)]
         neg = final_df[(final_df[steering] < 0)]
         print('FINAL: Positive Steering: {0}, Negative Steering: {1}'.format(len(pos),

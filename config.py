@@ -16,6 +16,7 @@ CHANNELS = 3
 STEERING_ADJUSTMENT = 1
 AUTONOMOUS_THROTTLE = .2
 # (200, 66) <-- Original NVIDIA Paper
+# (160, 320) <-- Original Comma
 IMAGE_WIDTH = 64
 IMAGE_HEIGHT = 32
 LR = 1e-5
@@ -44,11 +45,11 @@ KEEP_ALL_0_STEERING_VALS = False
 KEEP_1_OVER_X_0_STEERING_VALS = 2 # Lower == More kept images at 0 steering
 CAMERAS_TO_USE = 3  # 1 for Center, 3 for L/R/C
 # Steering adjustmenet for L/R images
-L_STEERING_ADJUSTMENT = .25
-R_STEERING_ADJUSTMENT = .25
+L_STEERING_ADJUSTMENT = .20
+R_STEERING_ADJUSTMENT = .20
 
 # Even out skew on L/R steering angles
-EVEN_OUT_LR_STEERING_ANGLES = True
+EVEN_OUT_LR_STEERING_ANGLES = False
 
 DEL_IMAGES = ['center_2016_12_01_13_38_02']
 
@@ -68,7 +69,7 @@ def full_train(path_altered='data/altered_driving_log.csv', path_altered_plus='d
         drive_df = pd.read_csv(path_altered_plus, index_col=0)
         add_brightness_augmented_images(drive_df, path_full)
     import model
-    model.train(path=path_full, checkpoint_path="models/full_new_64x64-{epoch:02d}.h5")
+    model.train(path=path_full, checkpoint_path="models/full_new_64x32_20LRSTEEringadjust_smaller_epoch_sample-{epoch:02d}.h5")
 
 
 def return_image(img, color_change=True):

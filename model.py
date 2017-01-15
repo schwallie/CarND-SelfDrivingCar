@@ -1,3 +1,5 @@
+import math
+
 import cv2
 import numpy as np
 from keras.callbacks import ModelCheckpoint
@@ -11,6 +13,7 @@ import load_data
 
 
 def steering_net():
+    print('NVIDIA Model...')
     model = Sequential()
     # Vivek, color space conversion layer so the model automatically figures out the best color space
     model.add(Lambda(lambda x: x / 255. - .5,
@@ -39,6 +42,7 @@ def steering_net():
 
 
 def comma_model():
+    print('Comma Model...')
     model = Sequential()
     model.add(Lambda(lambda x: x / 127.5 - 1.,
                      input_shape=(config.IMAGE_HEIGHT, config.IMAGE_WIDTH, config.CHANNELS),
@@ -57,11 +61,6 @@ def comma_model():
 
 
 def generate_arrays(X_train, y_train):
-    """while 1:
-        for ix in range(math.floor(len(X_train) / config.BATCH_SIZE)):
-            paths = X_train[ix * config.BATCH_SIZE:(ix + 1) * config.BATCH_SIZE]
-            imgs = [config.return_image(cv2.imread(f)) for f in paths]
-        yield np.array(imgs), np.array(y_train[ix * config.BATCH_SIZE:(ix + 1) * config.BATCH_SIZE])"""
     batch_images = np.zeros((config.BATCH_SIZE, config.IMAGE_HEIGHT, config.IMAGE_WIDTH, 3))
     batch_steering = np.zeros(config.BATCH_SIZE)
     while 1:
@@ -78,12 +77,11 @@ def generate_arrays(X_train, y_train):
 def train(path='data/full_driving_log.csv', checkpoint_path="models/comma_model_no_validate-{epoch:02d}.h5",
           model=comma_model()):
     model = get_model(model)
-    print("Loaded model")
     X_train, y_train = load_data.load_data(path=path)
     print(model.summary())
     print('X_train samples: {0}'.format(len(X_train)))
-    print("Training..")
-    SAMPLES_PER_EPOCH = len(X_train) // config.BATCH_SIZE * config.BATCH_SIZE
+    SAMPLES_PER_EPOCH = math.floor((len(X_train) // config.BATCH_SIZE * config.BATCH_SIZE) / 4)
+    print('Samples Per Epoch: {0}'.format(SAMPLES_PER_EPOCH))
     checkpoint = ModelCheckpoint(checkpoint_path, verbose=1, save_best_only=False, save_weights_only=True, mode='auto')
     model.fit_generator(generate_arrays(X_train, y_train),
                         samples_per_epoch=SAMPLES_PER_EPOCH,
