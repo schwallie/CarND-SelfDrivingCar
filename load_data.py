@@ -1,3 +1,5 @@
+import os
+
 import numpy as np
 import pandas as pd
 from sklearn.model_selection import train_test_split
@@ -5,11 +7,33 @@ from sklearn.utils import shuffle
 
 import config
 
+def load_drive_df(path='data/full_driving_log.csv'):
+    steering = 'steering'
+    drive_df = pd.read_csv(path, index_col=0)
+    # Changing specific images in Udacity dataset that have bad steering angles:
+    """print('Altering bad steering angles')
+    drive_df.loc[drive_df['center'].str.contains('center_2016_12_01_13_38_02'), steering] = -.05
+    drive_df.loc[drive_df['center'].str.contains('center_2016_12_01_13_40_43'), steering] = -.05
+    drive_df.loc[drive_df['center'].str.contains('center_2016_12_01_13_40_44'), steering] = -.05
+    drive_df.loc[
+        (drive_df['center'].str.contains('center_2016_12_01_13_41_12')) & (drive_df.steering == 0), steering] = -.05
+    drive_df.loc[drive_df['center'].str.contains('center_2016_12_01_13_41_17'), steering] = 0
+    drive_df.loc[drive_df['center'].str.contains('center_2016_12_01_13_41_20'), steering] = -.05
+    drive_df.loc[
+        (drive_df['center'].str.contains('center_2016_12_01_13_41_21')) & (drive_df.steering == 0), steering] = -.05
+    drive_df.loc[
+        (drive_df['center'].str.contains('center_2016_12_01_13_41_22')) & (drive_df.steering == 0), steering] = -.05"""
+    return drive_df
 
-def load_data(path='data/full_driving_log.csv'):  # altered_driving_log.csv
+
+def load_data(path='data/full_driving_log.csv', final_df='data/final_df.csv'):  # altered_driving_log.csv
+    #if final_df is not None and os.path.exists(final_df):
+    #    final_df = pd.read_csv(final_df)
+    #else:
     drive_df = pd.read_csv(path)
     # drive_df = drive_df[drive_df.throttle > .25]
     if config.SMOOTH_STEERING:
+        print('WARN**** USING SMOOTHED STEERING, BEWARE')
         drive_df['steering_smoothed'] = drive_df['steering'].rolling(center=False,
                                                                      window=config.STEER_SMOOTHING_WINDOW).mean()
         drive_df['steering_smoothed'] = drive_df['steering_smoothed'].fillna(0)
@@ -41,6 +65,7 @@ def load_data(path='data/full_driving_log.csv'):  # altered_driving_log.csv
     final_df.loc[final_df.img_path.str.contains('right'), steering] = final_df.loc[final_df.img_path.str.contains(
         'right'), steering] - config.R_STEERING_ADJUSTMENT
     final_df.index = range(0, len(final_df))
+    final_df.to_csv('data/final_df.csv')
     print('Length of Final DF Before Cutting: {0}'.format(len(final_df)))
     if config.EVEN_OUT_LR_STEERING_ANGLES:
         for rng in [[0, .1], [.1, .2], [.2, .5]]:
@@ -68,7 +93,8 @@ def load_data(path='data/full_driving_log.csv'):  # altered_driving_log.csv
         print('FINAL: Positive Steering: {0}, Negative Steering: {1}'.format(len(pos),
                                                                              len(neg)))
     if config.TAKE_OUT_NONCENTER_TRANSLATED_IMAGES:
-        final_df = final_df[(~final_df.img_path.str.contains('TRANS_left')) & (~final_df.img_path.str.contains('TRANS_right'))]
+        final_df = final_df[
+            (~final_df.img_path.str.contains('TRANS_left')) & (~final_df.img_path.str.contains('TRANS_right'))]
         print('Took out non-center translations: len: {0}'.format(len(final_df)))
     if config.TAKE_OUT_TRANSLATED_IMGS:
         final_df = final_df[~final_df.img_path.str.contains('TRANS')]
@@ -117,7 +143,7 @@ def print_data_makeup(final_df, steering):
     neg = final_df[(final_df[steering] < 0)]
     zero = final_df[final_df[steering] == 0]
     print('FINAL: Positive Steering: {0}, Negative Steering: {1}, 0 Angle Steering: {2}'.format(len(pos),
-                                                                                          len(neg), len(zero)))
+                                                                                                len(neg), len(zero)))
     print('Low Angle Steering: <.05, {0}'.format(len(final_df[abs(final_df[steering]) < .05])))
     print('Translated Images: {0}'.format(len(final_df[final_df.img_path.str.contains('TRANS')])))
     print('Brightened Images: {0}'.format(len(final_df[final_df.img_path.str.contains('BRIGHT')])))

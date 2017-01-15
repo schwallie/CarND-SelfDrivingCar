@@ -14,10 +14,10 @@ IMAGE_HEIGHT_CROP = 108
 IMAGE_WIDTH_CROP = 320
 CHANNELS = 3
 STEERING_ADJUSTMENT = 1
-AUTONOMOUS_THROTTLE = .1
+AUTONOMOUS_THROTTLE = .2
 # (200, 66) <-- Original NVIDIA Paper
 IMAGE_WIDTH = 64
-IMAGE_HEIGHT = 64
+IMAGE_HEIGHT = 32
 LR = 1e-5
 OPTIMIZER = Adam(lr=LR)
 LOSS = 'mse'
@@ -32,7 +32,8 @@ BATCH_SIZE = 128
 ####
 
 # Mean smoothing for the steering column
-SMOOTH_STEERING = True
+#TODO: Found bug on steer smoothing, where it has to be ordered by time
+SMOOTH_STEERING = False
 STEER_SMOOTHING_WINDOW = 3
 
 TAKE_OUT_FLIPPED_0_STEERING = True
@@ -43,8 +44,8 @@ KEEP_ALL_0_STEERING_VALS = False
 KEEP_1_OVER_X_0_STEERING_VALS = 2 # Lower == More kept images at 0 steering
 CAMERAS_TO_USE = 3  # 1 for Center, 3 for L/R/C
 # Steering adjustmenet for L/R images
-L_STEERING_ADJUSTMENT = .15
-R_STEERING_ADJUSTMENT = .15
+L_STEERING_ADJUSTMENT = .25
+R_STEERING_ADJUSTMENT = .25
 
 # Even out skew on L/R steering angles
 EVEN_OUT_LR_STEERING_ANGLES = True
@@ -53,18 +54,18 @@ DEL_IMAGES = ['center_2016_12_01_13_38_02']
 
 
 def full_train(path_altered='data/altered_driving_log.csv', path_altered_plus='data/altered_plus_driving_log.csv',
-               path_full='data/full_driving_log.csv'):
-    if not os.path.isfile(path_altered):
+               path_full='data/full_driving_log.csv', override=False):
+    if not os.path.isfile(path_altered) or override:
         print("Creating Altered Files")
         create_altered_drive_df(path_altered)
         add_flipped_images(path_altered)
-    if not os.path.isfile(path_altered_plus):
+    if not os.path.isfile(path_altered_plus) or override:
         print('Creating Translated Files')
-        drive_df = pd.read_csv(path_altered)
+        drive_df = pd.read_csv(path_altered, index_col=0)
         add_translated_images(drive_df, path_altered_plus)
-    if not os.path.isfile(path_full):
+    if not os.path.isfile(path_full) or override:
         print('Creating Brightness')
-        drive_df = pd.read_csv(path_altered_plus)
+        drive_df = pd.read_csv(path_altered_plus, index_col=0)
         add_brightness_augmented_images(drive_df, path_full)
     import model
     model.train(path=path_full, checkpoint_path="models/full_new_64x64-{epoch:02d}.h5")
@@ -84,7 +85,8 @@ def return_image(img, color_change=True):
 
 
 def create_altered_drive_df(path):
-    drive_df = pd.read_csv('data/driving_log.csv')
+    import load_data
+    drive_df = load_data.load_drive_df('data/driving_log.csv')
     drive_df.to_csv(path)
 
 
@@ -95,7 +97,7 @@ def add_flipped_images(path):
     for idx, row in drive_df.iterrows():
         if row['steering'] == 0:
             continue
-        rnd = np.random.randint(2)
+        # rnd = np.random.randint(2)
         # if rnd == 1:
         maxidx += 1
         # Flip and created a new image
@@ -235,8 +237,8 @@ def vis(df=None, rn=None, img_view='center', img=None):
         df = pd.read_csv('data/data/full_driving_log.csv')
         df['steering_smoothed'] = pd.rolling_mean(df['steering'], 3)
         df['steering_smoothed'] = df['steering_smoothed'].fillna(0)
-        df['left_steering'] = df['steering_smoothed'] + .05
-        df['right_steering'] = df['steering_smoothed'] - .05
+        df['left_steering'] = df['steering_smoothed'] + L_STEERING_ADJUSTMENT
+        df['right_steering'] = df['steering_smoothed'] - R_STEERING_ADJUSTMENT
         df = df.rename(columns={'steering_smoothed': 'center_steering'})
     if rn is None and img is None:
         # RN is just a random number to choose an img to show
