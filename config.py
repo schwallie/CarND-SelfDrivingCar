@@ -27,38 +27,42 @@ BATCH_SIZE = 256
 
 ####
 #
-# This section is refered to in load_data.py
-# Keep i-0908e9b5131608d26
+# This section is referred to in load_data.py
 #
 ####
 
 # Mean smoothing for the steering column
-# TODO: Found bug on steer smoothing, where it has to be ordered by time
+# TODO: Found bug on steer smoothing, where it has to be ordered by time (duh)
 SMOOTH_STEERING = False
 STEER_SMOOTHING_WINDOW = 3
 
 # Take only images with throttle being used
 # If wanting to activate, set to some threshold(i.e., .25), if not, use False
 TAKE_OUT_LOW_THROTTLE = False
-TAKE_OUT_FLIPPED_0_STEERING = True
-TAKE_OUT_TRANSLATED_IMGS = False
-TAKE_OUT_NONCENTER_TRANSLATED_IMAGES = True
+TAKE_OUT_TRANSLATED_IMGS = True
+TAKE_OUT_BRIGHT_IMGS = True
+TAKE_OUT_FLIPPED = True
 # Too many vals at 0 steering, need to take some out to prevent driving straight
-KEEP_ALL_0_STEERING_VALS = False
-KEEP_1_OVER_X_0_STEERING_VALS = 2  # Lower == More kept images at 0 steering
-CAMERAS_TO_USE = 1  # 1 for Center, 3 for L/R/C
+KEEP_ALL_0_STEERING_VALS = True
+KEEP_1_OVER_X_0_STEERING_VALS = 4  # Lower == More kept images at 0 steering
+CAMERAS_TO_USE = 3  # 1 for Center, 3 for L/R/C
 # Steering adjustmenet for L/R images
 L_STEERING_ADJUSTMENT = .25
 R_STEERING_ADJUSTMENT = .25
 
 # Even out skew on L/R steering angles
-EVEN_OUT_LR_STEERING_ANGLES = True
-EVEN_BINS = [[0, .1], [.1, .2]] # [.2, .5] # Take out large evenings, to keep large angle changes
+EVEN_OUT_LR_STEERING_ANGLES = False
+EVEN_BINS = [[0, .1], [.1, .2]]  # [.2, .5] # Take out large evenings, to keep large angle changes
 
 DEL_IMAGES = ['center_2016_12_01_13_38_02']
 
 # Keep Perturbed Angles
+KEEP_PERTURBED_ANGLES = False
 PERTURBED_ANGLE = np.random.uniform(-1, 1) / 40
+
+#### DEPRECATED, Were used to fix bugs!
+TAKE_OUT_NONCENTER_TRANSLATED_IMAGES = False
+TAKE_OUT_FLIPPED_0_STEERING = False
 
 
 def full_train(path_orig='data/driving_log.csv',
@@ -90,7 +94,7 @@ def full_train(path_orig='data/driving_log.csv',
     drive_df = pd.read_csv(path_save)
     drive_df.to_csv(path_full)
     import model
-    model.train(path=path_full, checkpoint_path="models/no_upsampling_new_architecture-{epoch:02d}.h5")
+    model.train(path=path_full, checkpoint_path="models/back_2_basics_lrc-{epoch:02d}.h5")
 
 
 def return_image(img, color_change=True):
@@ -113,14 +117,18 @@ def add_augment_steering_angles(drive_df, path):
     :param path:
     :return:
     """
-    original = drive_df[(pd.notnull(drive_df['left'])) & (~drive_df['center'].str.contains('BRIGHT'))]
-    # original = original[abs(original['steering']) > .1]
-    original['steering2'] = original.apply(lambda x: x['steering'] + PERTURBED_ANGLE, axis=1)
-    del original['steering']
-    original = original.rename(columns={'steering2': 'steering'})
-    original.index = range(len(drive_df) + 1, len(drive_df) + 1 + len(original))
-    original['PERT'] = 1
-    drive_df = drive_df.append(original)
+    begin = len(drive_df)
+    for ix in range(0, 2):
+        original = drive_df[(pd.notnull(drive_df['left'])) & (~drive_df['center'].str.contains('BRIGHT'))]
+        original = original[abs(original['steering']) > .05]
+        original['steering2'] = original.apply(lambda x: x['steering'] + PERTURBED_ANGLE, axis=1)
+        del original['steering']
+        original = original.rename(columns={'steering2': 'steering'})
+        original.index = range(len(drive_df) + 1, len(drive_df) + 1 + len(original))
+        original['PERT'] = 1
+        drive_df = drive_df.append(original)
+    end = len(drive_df)
+    print('Augmented Steering Angles: {0} ({1})'.format(end, end - begin))
     drive_df.to_csv(path)
 
 
@@ -131,6 +139,7 @@ def create_altered_drive_df(path):
 
 
 def add_flipped_images(drive_df, path):
+    begin = len(drive_df)
     maxidx = max(drive_df.index)
     addition = {}
     for idx, row in drive_df.iterrows():
@@ -150,6 +159,8 @@ def add_flipped_images(drive_df, path):
         addition[maxidx] = {'center': new_path, 'steering': steer}
     new_df = pd.DataFrame.from_dict(addition, orient='index')
     drive_df = drive_df.append(new_df)
+    end = len(drive_df)
+    print('Flipped Images: {0} ({1})'.format(end, end - begin))
     drive_df.to_csv(path)
 
 
@@ -165,7 +176,8 @@ def trans_image(image, steer, trans_range):
     return image_tr, steer_ang
 
 
-def add_translated_images(drive_df, path, translated_image_per_image=5):
+def add_translated_images(drive_df, path):
+    begin = len(drive_df)
     maxidx = max(drive_df.index)
     addition = {}
     choices = ['center']  # 'left', 'right'
@@ -186,49 +198,8 @@ def add_translated_images(drive_df, path, translated_image_per_image=5):
         maxidx += 1
     new_df = pd.DataFrame.from_dict(addition, orient='index')
     drive_df = drive_df.append(new_df)
-    drive_df.to_csv(path)
-
-
-def add_random_shadow(image):
-    top_y = 320 * np.random.uniform()
-    top_x = 0
-    bot_x = 160
-    bot_y = 320 * np.random.uniform()
-    image_hls = cv2.cvtColor(image, cv2.COLOR_RGB2HLS)
-    shadow_mask = 0 * image_hls[:, :, 1]
-    X_m = np.mgrid[0:image.shape[0], 0:image.shape[1]][0]
-    Y_m = np.mgrid[0:image.shape[0], 0:image.shape[1]][1]
-    shadow_mask[((X_m - top_x) * (bot_y - top_y) - (bot_x - top_x) * (Y_m - top_y) >= 0)] = 1
-    # random_bright = .25+.7*np.random.uniform()
-    if np.random.randint(2) == 1:
-        random_bright = .5
-        cond1 = shadow_mask == 1
-        cond0 = shadow_mask == 0
-        if np.random.randint(2) == 1:
-            image_hls[:, :, 1][cond1] = image_hls[:, :, 1][cond1] * random_bright
-        else:
-            image_hls[:, :, 1][cond0] = image_hls[:, :, 1][cond0] * random_bright
-    image = cv2.cvtColor(image_hls, cv2.COLOR_HLS2RGB)
-    return image
-
-
-def add_shadowed_images(drive_df, path):
-    maxidx = max(drive_df.index)
-    addition = {}
-    choices = ['center', 'left', 'right']
-    # I only want to translate the original images with all 3 images avail, not flipped images
-    for idx, row in drive_df[pd.notnull(drive_df['left'])].iterrows():
-        addition[maxidx] = {'steering': row['steering']}
-        for choice in choices:
-            img_path = 'data/{0}'.format(row[choice].strip())
-            new_path = 'IMG/SHADOW_{0}'.format(row[choice].split('/')[-1])
-            img = cv2.imread(img_path)
-            img = add_random_shadow(img)
-            cv2.imwrite('data/{0}'.format(new_path), img)
-            addition[maxidx][choice] = new_path
-        maxidx += 1
-    new_df = pd.DataFrame.from_dict(addition, orient='index')
-    drive_df = drive_df.append(new_df)
+    end = len(drive_df)
+    print('Translations: {0} ({1})'.format(end, end - begin))
     drive_df.to_csv(path)
 
 
@@ -241,6 +212,7 @@ def augment_brightness_camera_images(image):
 
 
 def add_brightness_augmented_images(drive_df, path):
+    begin = len(drive_df)
     maxidx = max(drive_df.index)
     addition = {}
     choices = ['center', 'left', 'right']
@@ -257,6 +229,8 @@ def add_brightness_augmented_images(drive_df, path):
         maxidx += 1
     new_df = pd.DataFrame.from_dict(addition, orient='index')
     drive_df = drive_df.append(new_df)
+    end = len(drive_df)
+    print('Brightness Augment: {0} ({1})'.format(end, end - begin))
     drive_df.to_csv(path)
 
 

@@ -6,31 +6,8 @@ from sklearn.utils import shuffle
 import config
 
 
-def load_drive_df(path='data/full_driving_log.csv'):
-    steering = 'steering'
-    drive_df = pd.read_csv(path, index_col=0)
-    # Changing specific images in Udacity dataset that have bad steering angles:
-    """print('Altering bad steering angles')
-    drive_df.loc[drive_df['center'].str.contains('center_2016_12_01_13_38_02'), steering] = -.05
-    drive_df.loc[drive_df['center'].str.contains('center_2016_12_01_13_40_43'), steering] = -.05
-    drive_df.loc[drive_df['center'].str.contains('center_2016_12_01_13_40_44'), steering] = -.05
-    drive_df.loc[
-        (drive_df['center'].str.contains('center_2016_12_01_13_41_12')) & (drive_df.steering == 0), steering] = -.05
-    drive_df.loc[drive_df['center'].str.contains('center_2016_12_01_13_41_17'), steering] = 0
-    drive_df.loc[drive_df['center'].str.contains('center_2016_12_01_13_41_20'), steering] = -.05
-    drive_df.loc[
-        (drive_df['center'].str.contains('center_2016_12_01_13_41_21')) & (drive_df.steering == 0), steering] = -.05
-    drive_df.loc[
-        (drive_df['center'].str.contains('center_2016_12_01_13_41_22')) & (drive_df.steering == 0), steering] = -.05"""
-    return drive_df
-
-
-def load_data(path='data/full_driving_log.csv', final_df='data/final_df.csv'):  # altered_driving_log.csv
-    drive_df = pd.read_csv(path)
-    drive_df, steering = smoothe_steering_or_nah(drive_df)
-    final_df = make_final_df(drive_df, steering)
-    final_df = cut_out_pieces_of_final_df(final_df, steering)
-    print_data_makeup(final_df, steering)
+def load_data(path='data/full_driving_log.csv'):  # altered_driving_log.csv
+    final_df, steering = return_final_df(path=path)
     X_data = final_df.img_path.values
     y_data = final_df[steering].values
     y_data = np.float32(y_data)
@@ -38,8 +15,21 @@ def load_data(path='data/full_driving_log.csv', final_df='data/final_df.csv'):  
     return shuffle(X_data, y_data)
 
 
+def return_final_df(path='data/full_driving_log.csv'):
+    drive_df = pd.read_csv(path)
+    drive_df, steering = smoothe_steering_or_nah(drive_df)
+    final_df = make_final_df(drive_df, steering)
+    final_df = cut_out_pieces_of_final_df(final_df, steering)
+    print_data_makeup(final_df, steering)
+    return final_df, steering
+
+
 def cut_out_pieces_of_final_df(final_df, steering):
     begin = len(final_df)
+    if not config.KEEP_PERTURBED_ANGLES:
+        final_df = del_perturbed_angles(final_df)
+    if config.TAKE_OUT_BRIGHT_IMGS:
+        final_df = del_bright_images(final_df)
     if config.TAKE_OUT_LOW_THROTTLE:
         final_df = cut_out_low_throttle(final_df)
     if config.EVEN_OUT_LR_STEERING_ANGLES:
@@ -50,6 +40,8 @@ def cut_out_pieces_of_final_df(final_df, steering):
         final_df = take_out_all_translations(final_df)
     if config.TAKE_OUT_FLIPPED_0_STEERING:
         final_df = take_out_flipped_0_steering(final_df, steering)
+    if config.TAKE_OUT_FLIPPED:
+        final_df = take_out_flipped(final_df)
     # Take out some of the 'steering' angles of 0
     if not config.KEEP_ALL_0_STEERING_VALS:
         final_df = take_out_some_0_steer_vals(final_df)
@@ -61,6 +53,22 @@ def cut_out_pieces_of_final_df(final_df, steering):
         final_df = take_out_specific_bad_images(final_df)
     end = len(final_df)
     print('Length of Final DF After Cutting: {0} ({1})'.format(end, end - begin))
+    return final_df
+
+
+def del_bright_images(final_df):
+    begin = len(final_df)
+    final_df = final_df[~final_df.img_path.str.contains('BRIGHT')]
+    end = len(final_df)
+    print('Took out Brightness Changes: {0} ({1})'.format(end, end - begin))
+    return final_df
+
+
+def del_perturbed_angles(final_df):
+    begin = len(final_df)
+    final_df = final_df[pd.isnull(final_df.PERT)]
+    end = len(final_df)
+    print('Took out Perturbed Angles: {0} ({1})'.format(end, end - begin))
     return final_df
 
 
@@ -78,9 +86,9 @@ def make_final_df(drive_df, steering):
     drive_df.index = range(0, len(drive_df))
     drive_df = drive_df.rename(columns={steering: 'center_steering'})
     final_df = pd.concat(
-        [drive_df[pd.notnull(drive_df['left'])][['left', 'left_steering']],
-         drive_df[pd.notnull(drive_df['center'])][['center', 'center_steering']],
-         drive_df[pd.notnull(drive_df['right'])][['right', 'right_steering']]])
+        [drive_df[pd.notnull(drive_df['left'])][['left', 'left_steering', 'PERT']],
+         drive_df[pd.notnull(drive_df['center'])][['center', 'center_steering', 'PERT']],
+         drive_df[pd.notnull(drive_df['right'])][['right', 'right_steering', 'PERT']]])
     final_df = final_df.rename(columns={'center': 'img_path', 'center_steering': steering})
     final_df['img_path'] = final_df['img_path'].fillna(final_df['right'])
     final_df['img_path'] = final_df['img_path'].fillna(final_df['left'])
@@ -145,7 +153,7 @@ def take_out_all_translations(final_df):
     begin = len(final_df)
     final_df = final_df[~final_df.img_path.str.contains('TRANS')]
     end = len(final_df)
-    print('Took out translations: len: {0}'.format(end, end - begin))
+    print('Took out translations: {0} ({1})'.format(end, end - begin))
     return final_df
 
 
@@ -154,6 +162,14 @@ def take_out_flipped_0_steering(final_df, steering):
     final_df = final_df[~((final_df.img_path.str.contains('FLIPPED')) & (final_df[steering] == 0))]
     end = len(final_df)
     print('Took out FLIPPED 0 steering: len: {0} ({1})'.format(end, end - begin))
+    return final_df
+
+
+def take_out_flipped(final_df):
+    begin = len(final_df)
+    final_df = final_df[~(final_df.img_path.str.contains('FLIPPED'))]
+    end = len(final_df)
+    print('Took out FLIPPED: len: {0} ({1})'.format(end, end - begin))
     return final_df
 
 
@@ -173,22 +189,24 @@ def use_specific_cameras(final_df, cameras_to_use):
     return final_df
 
 
-def take_out_some_0_steer_vals(final_df):
+def take_out_some_0_steer_vals(final_df, angle=.04):
     """
     Takes out some of the zero steering vals, so the car doesn't tend towards going straight
     :param final_df:
     :return:
     """
-    begin = len(final_df[final_df.steering == 0])
-    steer_0s = final_df[final_df.steering == 0].index
+    final_df.index = range(0, len(final_df))
+    piece = final_df[(abs(final_df.steering) <= angle)]
+    begin = len(piece)
+    steer_0s = piece.index
     # Cut out a certain portion of 0 steers and keep only the leftovers
-    to_keep = int(len(steer_0s) / config.KEEP_1_OVER_X_0_STEERING_VALS)
-    kept = np.random.choice(steer_0s, size=to_keep)
+    take_out = len(steer_0s) - int(len(steer_0s) / config.KEEP_1_OVER_X_0_STEERING_VALS)
+    deleted = np.random.choice(steer_0s, size=take_out)
     final_df.loc[:, 'ix'] = final_df.index
-    final_df = final_df[(final_df['ix'].isin(kept)) | (final_df['steering'] != 0)]
+    final_df = final_df[~(final_df['ix'].isin(deleted))]
     del final_df['ix']
-    end = len(final_df[final_df.steering == 0])
-    print('Took out a lot of 0 steering values...Current len of 0s: {0} ({1})'.format(end, end - begin))
+    end = len(final_df[(abs(final_df.steering) <= angle)])
+    print('Took out {0} of 0 steering values...Current len of 0s: {1} ({2})'.format(take_out, end, end - begin))
     return final_df
 
 
@@ -215,11 +233,11 @@ def even_out_steering_angles(final_df, steering, bins=config.EVEN_BINS):
     :param bins:
     :return:
     """
+    pos_begin = len(final_df[(final_df[steering] > 0)])
+    neg_begin = len(final_df[(final_df[steering] < 0)])
     for rng in bins:
         pos = final_df[(final_df[steering] > rng[0]) & (final_df[steering] <= rng[1])]
         neg = final_df[(final_df[steering] < -rng[0]) & (final_df[steering] >= -rng[1])]
-        print('{0}, Positive Steering: {1}, Negative Steering: {2}'.format(rng, len(pos),
-                                                                           len(neg)))
         # Taking out small angles only that are L or R
         if len(pos) > len(neg):
             diff = len(pos) - len(neg)
@@ -228,17 +246,20 @@ def even_out_steering_angles(final_df, steering, bins=config.EVEN_BINS):
             diff = len(neg) - len(pos)
             options = neg.index
         deleted = np.random.choice(options, size=diff)
-        final_df['ix'] = final_df.index
+        final_df.loc[:, 'ix'] = final_df.index
         final_df = final_df[~(final_df['ix'].isin(deleted))]
         del final_df['ix']
-        pos = final_df[(final_df[steering] > rng[0]) & (final_df[steering] <= rng[1])]
-        neg = final_df[(final_df[steering] < -rng[0]) & (final_df[steering] >= -rng[1])]
-        print('END: {0}, Positive Steering: {1}, Negative Steering: {2}'.format(rng, len(pos),
-                                                                                len(neg)))
-    pos = final_df[(final_df[steering] > 0)]
-    neg = final_df[(final_df[steering] < 0)]
-    print('FINAL: Positive Steering: {0}, Negative Steering: {1}'.format(len(pos),
-                                                                         len(neg)))
+        pos_end = len(final_df[(final_df[steering] > rng[0]) & (final_df[steering] <= rng[1])])
+        neg_end = len(final_df[(final_df[steering] < -rng[0]) & (final_df[steering] >= -rng[1])])
+        print('END: {0}, Positive Steering: {1} ({2}), Negative Steering: {3} ({4})'.format(rng,
+                                                                                            len(pos),
+                                                                                            pos_end - len(pos),
+                                                                                            len(neg),
+                                                                                            neg_end - len(neg)))
+    pos = len(final_df[(final_df[steering] > 0)])
+    neg = len(final_df[(final_df[steering] < 0)])
+    print('FINAL: Positive Steering: {0} ({1}), Negative Steering: {2} ({3})'.format(pos, pos - pos_begin,
+                                                                                     neg, neg - neg_begin))
     return final_df
 
 
@@ -261,3 +282,22 @@ def print_data_makeup(final_df, steering):
 def return_validation(path='data/driving_log.csv'):
     X_data, y_data = load_data(path=path)
     return train_test_split(X_data, y_data, test_size=.05, random_state=43)
+
+
+def load_drive_df(path='data/full_driving_log.csv'):
+    steering = 'steering'
+    drive_df = pd.read_csv(path, index_col=0)
+    # Changing specific images in Udacity dataset that have bad steering angles:
+    """print('Altering bad steering angles')
+    drive_df.loc[drive_df['center'].str.contains('center_2016_12_01_13_38_02'), steering] = -.05
+    drive_df.loc[drive_df['center'].str.contains('center_2016_12_01_13_40_43'), steering] = -.05
+    drive_df.loc[drive_df['center'].str.contains('center_2016_12_01_13_40_44'), steering] = -.05
+    drive_df.loc[
+        (drive_df['center'].str.contains('center_2016_12_01_13_41_12')) & (drive_df.steering == 0), steering] = -.05
+    drive_df.loc[drive_df['center'].str.contains('center_2016_12_01_13_41_17'), steering] = 0
+    drive_df.loc[drive_df['center'].str.contains('center_2016_12_01_13_41_20'), steering] = -.05
+    drive_df.loc[
+        (drive_df['center'].str.contains('center_2016_12_01_13_41_21')) & (drive_df.steering == 0), steering] = -.05
+    drive_df.loc[
+        (drive_df['center'].str.contains('center_2016_12_01_13_41_22')) & (drive_df.steering == 0), steering] = -.05"""
+    return drive_df
