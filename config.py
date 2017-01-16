@@ -23,7 +23,7 @@ LR = 1e-5
 OPTIMIZER = Adam(lr=LR)
 LOSS = 'mse'
 NB_EPOCH = 10
-BATCH_SIZE = 128
+BATCH_SIZE = 256
 
 ####
 #
@@ -84,7 +84,7 @@ def full_train(path_orig='data/driving_log.csv',
     drive_df.to_csv(path_full)
     ### Need to add
     import model
-    model.train(path=path_full, checkpoint_path="models/aug_angles_no_transl_upsample_lg_ang-{epoch:02d}.h5")
+    model.train(path=path_full, checkpoint_path="models/aug_angles_no_transl_upsample_lg_ang_256_batch-{epoch:02d}.h5")
 
 
 def return_image(img, color_change=True):
@@ -101,7 +101,7 @@ def return_image(img, color_change=True):
 
 def add_augment_steering_angles(drive_df, path):
     original = drive_df[(pd.notnull(drive_df['left'])) & (~drive_df['center'].str.contains('BRIGHT'))]
-    original = original[abs(original['steering']) > .05]
+    original = original[abs(original['steering']) > .1]
     original['steering2'] = original.apply(lambda x: x['steering'] + np.random.uniform(-1, 1) / 40, axis=1)
     del original['steering']
     original = original.rename(columns={'steering2': 'steering'})
