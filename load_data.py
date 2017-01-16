@@ -145,6 +145,7 @@ def print_data_makeup(final_df, steering):
     print('FINAL: Positive Steering: {0}, Negative Steering: {1}, 0 Angle Steering: {2}'.format(len(pos),
                                                                                                 len(neg), len(zero)))
     print('Low Angle Steering: <.05, {0}'.format(len(final_df[abs(final_df[steering]) < .05])))
+    print('High Angle Steering: >.25, {0}'.format(len(final_df[abs(final_df[steering]) > .25])))
     print('Translated Images: {0}'.format(len(final_df[final_df.img_path.str.contains('TRANS')])))
     print('Brightened Images: {0}'.format(len(final_df[final_df.img_path.str.contains('BRIGHT')])))
     print('Flipped Images: {0}'.format(len(final_df[final_df.img_path.str.contains('FLIP')])))

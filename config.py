@@ -33,16 +33,16 @@ BATCH_SIZE = 128
 ####
 
 # Mean smoothing for the steering column
-#TODO: Found bug on steer smoothing, where it has to be ordered by time
+# TODO: Found bug on steer smoothing, where it has to be ordered by time
 SMOOTH_STEERING = False
 STEER_SMOOTHING_WINDOW = 3
 
 TAKE_OUT_FLIPPED_0_STEERING = True
-TAKE_OUT_TRANSLATED_IMGS = False
+TAKE_OUT_TRANSLATED_IMGS = True
 TAKE_OUT_NONCENTER_TRANSLATED_IMAGES = True
 # Too many vals at 0 steering, need to take some out to prevent driving straight
 KEEP_ALL_0_STEERING_VALS = False
-KEEP_1_OVER_X_0_STEERING_VALS = 2 # Lower == More kept images at 0 steering
+KEEP_1_OVER_X_0_STEERING_VALS = 2  # Lower == More kept images at 0 steering
 CAMERAS_TO_USE = 3  # 1 for Center, 3 for L/R/C
 # Steering adjustmenet for L/R images
 L_STEERING_ADJUSTMENT = .20
@@ -54,22 +54,37 @@ EVEN_OUT_LR_STEERING_ANGLES = False
 DEL_IMAGES = ['center_2016_12_01_13_38_02']
 
 
-def full_train(path_altered='data/altered_driving_log.csv', path_altered_plus='data/altered_plus_driving_log.csv',
-               path_full='data/full_driving_log.csv', override=False):
+def full_train(path_orig='data/driving_log.csv',
+               path_altered='data/altered_driving_log.csv', path_altered_plus='data/altered_plus_driving_log.csv',
+               path_bright='data/brightness_driving_log.csv', path_angle_augment='data/altered_angle.csv',
+               path_full='data/full_driving_log.csv', override=False, path_save=None):
+    if not os.path.isfile(path_angle_augment) or override:
+        print('Creating Slightly Altered Angles')
+        drive_df = pd.read_csv(path_orig, index_col=0)
+        path_save = path_angle_augment
+        add_augment_steering_angles(drive_df, path_save)
     if not os.path.isfile(path_altered) or override:
         print("Creating Altered Files")
-        create_altered_drive_df(path_altered)
-        add_flipped_images(path_altered)
+        drive_df = pd.read_csv(path_save, index_col=0)
+        path_save = path_altered
+        add_flipped_images(drive_df, path_save)
     if not os.path.isfile(path_altered_plus) or override:
         print('Creating Translated Files')
-        drive_df = pd.read_csv(path_altered, index_col=0)
-        add_translated_images(drive_df, path_altered_plus)
-    if not os.path.isfile(path_full) or override:
+        drive_df = pd.read_csv(path_save, index_col=0)
+        path_save = path_altered_plus
+        add_translated_images(drive_df, path_save)
+    if not os.path.isfile(path_bright) or override:
         print('Creating Brightness')
-        drive_df = pd.read_csv(path_altered_plus, index_col=0)
-        add_brightness_augmented_images(drive_df, path_full)
+        drive_df = pd.read_csv(path_save, index_col=0)
+        path_save = path_bright
+        add_brightness_augmented_images(drive_df, path_save)
+    if not path_save:
+        path_save = path_bright
+    drive_df = pd.read_csv(path_save)
+    drive_df.to_csv(path_full)
+    ### Need to add
     import model
-    model.train(path=path_full, checkpoint_path="models/full_new_64x32_20LRSTEEringadjust_smaller_epoch_sample-{epoch:02d}.h5")
+    model.train(path=path_full, checkpoint_path="models/aug_angles_no_transl_upsample_lg_ang-{epoch:02d}.h5")
 
 
 def return_image(img, color_change=True):
@@ -80,9 +95,19 @@ def return_image(img, color_change=True):
     assert crop_img.shape[1] == IMAGE_WIDTH_CROP
     if color_change:
         img = cv2.cvtColor(crop_img, cv2.COLOR_BGR2RGB)
-    # img = augment_brightness_camera_images(img)
     img = (cv2.resize(img, (IMAGE_WIDTH, IMAGE_HEIGHT), interpolation=cv2.INTER_AREA))
     return np.float32(img)
+
+
+def add_augment_steering_angles(drive_df, path):
+    original = drive_df[(pd.notnull(drive_df['left'])) & (~drive_df['center'].str.contains('BRIGHT'))]
+    original = original[abs(original['steering']) > .05]
+    original['steering2'] = original.apply(lambda x: x['steering'] + np.random.uniform(-1, 1) / 40, axis=1)
+    del original['steering']
+    original = original.rename(columns={'steering2': 'steering'})
+    original.index = range(len(drive_df) + 1, len(drive_df) + 1 + len(original))
+    drive_df = drive_df.append(original)
+    drive_df.to_csv(path)
 
 
 def create_altered_drive_df(path):
@@ -91,8 +116,7 @@ def create_altered_drive_df(path):
     drive_df.to_csv(path)
 
 
-def add_flipped_images(path):
-    drive_df = pd.read_csv(path)
+def add_flipped_images(drive_df, path):
     maxidx = max(drive_df.index)
     addition = {}
     for idx, row in drive_df.iterrows():
@@ -130,7 +154,7 @@ def trans_image(image, steer, trans_range):
 def add_translated_images(drive_df, path, translated_image_per_image=5):
     maxidx = max(drive_df.index)
     addition = {}
-    choices = ['center'] # 'left', 'right'
+    choices = ['center']  # 'left', 'right'
     # I only want to translate the original images with all 3 images avail, not flipped images
     for idx, row in drive_df[pd.notnull(drive_df['left'])].iterrows():
         addition[maxidx] = {}
@@ -138,7 +162,7 @@ def add_translated_images(drive_df, path, translated_image_per_image=5):
             img_path = 'data/{0}'.format(row[choice].strip())
             new_path = 'IMG/TRANS_{0}'.format(row[choice].split('/')[-1])
             img = cv2.imread(img_path)
-            #ERROR: If this is L/R I need to use row['steering'] +- ANGLE!!
+            # ERROR: If this is L/R I need to use row['steering'] +- ANGLE!!
             # TODO: Be able to translate non-center
             img, steer = trans_image(img, row['steering'], 150)
             cv2.imwrite('data/{0}'.format(new_path), img)
@@ -220,6 +244,7 @@ def add_brightness_augmented_images(drive_df, path):
     new_df = pd.DataFrame.from_dict(addition, orient='index')
     drive_df = drive_df.append(new_df)
     drive_df.to_csv(path)
+
 
 def vis(df=None, rn=None, img_view='center', img=None):
     """
