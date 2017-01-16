@@ -37,21 +37,28 @@ BATCH_SIZE = 256
 SMOOTH_STEERING = False
 STEER_SMOOTHING_WINDOW = 3
 
+# Take only images with throttle being used
+# If wanting to activate, set to some threshold(i.e., .25), if not, use False
+TAKE_OUT_LOW_THROTTLE = False
 TAKE_OUT_FLIPPED_0_STEERING = True
-TAKE_OUT_TRANSLATED_IMGS = True
+TAKE_OUT_TRANSLATED_IMGS = False
 TAKE_OUT_NONCENTER_TRANSLATED_IMAGES = True
 # Too many vals at 0 steering, need to take some out to prevent driving straight
 KEEP_ALL_0_STEERING_VALS = False
 KEEP_1_OVER_X_0_STEERING_VALS = 2  # Lower == More kept images at 0 steering
-CAMERAS_TO_USE = 3  # 1 for Center, 3 for L/R/C
+CAMERAS_TO_USE = 1  # 1 for Center, 3 for L/R/C
 # Steering adjustmenet for L/R images
-L_STEERING_ADJUSTMENT = .20
-R_STEERING_ADJUSTMENT = .20
+L_STEERING_ADJUSTMENT = .25
+R_STEERING_ADJUSTMENT = .25
 
 # Even out skew on L/R steering angles
-EVEN_OUT_LR_STEERING_ANGLES = False
+EVEN_OUT_LR_STEERING_ANGLES = True
+EVEN_BINS = [[0, .1], [.1, .2]] # [.2, .5] # Take out large evenings, to keep large angle changes
 
 DEL_IMAGES = ['center_2016_12_01_13_38_02']
+
+# Keep Perturbed Angles
+PERTURBED_ANGLE = np.random.uniform(-1, 1) / 40
 
 
 def full_train(path_orig='data/driving_log.csv',
@@ -82,9 +89,8 @@ def full_train(path_orig='data/driving_log.csv',
         path_save = path_bright
     drive_df = pd.read_csv(path_save)
     drive_df.to_csv(path_full)
-    ### Need to add
     import model
-    model.train(path=path_full, checkpoint_path="models/aug_angles_no_transl_upsample_lg_ang_256_batch-{epoch:02d}.h5")
+    model.train(path=path_full, checkpoint_path="models/no_upsampling_new_architecture-{epoch:02d}.h5")
 
 
 def return_image(img, color_change=True):
@@ -100,12 +106,20 @@ def return_image(img, color_change=True):
 
 
 def add_augment_steering_angles(drive_df, path):
+    """
+    The idea is to teach the Model that we can have slighlty adjusted angles
+    Also adds more to the dataset
+    :param drive_df:
+    :param path:
+    :return:
+    """
     original = drive_df[(pd.notnull(drive_df['left'])) & (~drive_df['center'].str.contains('BRIGHT'))]
-    original = original[abs(original['steering']) > .1]
-    original['steering2'] = original.apply(lambda x: x['steering'] + np.random.uniform(-1, 1) / 40, axis=1)
+    # original = original[abs(original['steering']) > .1]
+    original['steering2'] = original.apply(lambda x: x['steering'] + PERTURBED_ANGLE, axis=1)
     del original['steering']
     original = original.rename(columns={'steering2': 'steering'})
     original.index = range(len(drive_df) + 1, len(drive_df) + 1 + len(original))
+    original['PERT'] = 1
     drive_df = drive_df.append(original)
     drive_df.to_csv(path)
 
