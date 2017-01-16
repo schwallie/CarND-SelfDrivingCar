@@ -201,7 +201,7 @@ def take_out_some_0_steer_vals(final_df, angle=.04):
     steer_0s = piece.index
     # Cut out a certain portion of 0 steers and keep only the leftovers
     take_out = len(steer_0s) - int(len(steer_0s) / config.KEEP_1_OVER_X_0_STEERING_VALS)
-    deleted = np.random.choice(steer_0s, size=take_out)
+    deleted = np.random.choice(steer_0s, size=take_out, replace=False)
     final_df.loc[:, 'ix'] = final_df.index
     final_df = final_df[~(final_df['ix'].isin(deleted))]
     del final_df['ix']
@@ -236,6 +236,7 @@ def even_out_steering_angles(final_df, steering, bins=config.EVEN_BINS):
     pos_begin = len(final_df[(final_df[steering] > 0)])
     neg_begin = len(final_df[(final_df[steering] < 0)])
     for rng in bins:
+        final_df.index = range(0, len(final_df))
         pos = final_df[(final_df[steering] > rng[0]) & (final_df[steering] <= rng[1])]
         neg = final_df[(final_df[steering] < -rng[0]) & (final_df[steering] >= -rng[1])]
         # Taking out small angles only that are L or R
@@ -245,7 +246,7 @@ def even_out_steering_angles(final_df, steering, bins=config.EVEN_BINS):
         else:
             diff = len(neg) - len(pos)
             options = neg.index
-        deleted = np.random.choice(options, size=diff)
+        deleted = np.random.choice(options, size=diff, replace=False)
         final_df.loc[:, 'ix'] = final_df.index
         final_df = final_df[~(final_df['ix'].isin(deleted))]
         del final_df['ix']

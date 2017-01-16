@@ -40,10 +40,10 @@ STEER_SMOOTHING_WINDOW = 3
 # If wanting to activate, set to some threshold(i.e., .25), if not, use False
 TAKE_OUT_LOW_THROTTLE = False
 TAKE_OUT_TRANSLATED_IMGS = True
-TAKE_OUT_BRIGHT_IMGS = True
+TAKE_OUT_BRIGHT_IMGS = False
 TAKE_OUT_FLIPPED = True
 # Too many vals at 0 steering, need to take some out to prevent driving straight
-KEEP_ALL_0_STEERING_VALS = True
+KEEP_ALL_0_STEERING_VALS = False
 KEEP_1_OVER_X_0_STEERING_VALS = 4  # Lower == More kept images at 0 steering
 CAMERAS_TO_USE = 3  # 1 for Center, 3 for L/R/C
 # Steering adjustmenet for L/R images
@@ -51,10 +51,10 @@ L_STEERING_ADJUSTMENT = .25
 R_STEERING_ADJUSTMENT = .25
 
 # Even out skew on L/R steering angles
-EVEN_OUT_LR_STEERING_ANGLES = False
-EVEN_BINS = [[0, .1], [.1, .2]]  # [.2, .5] # Take out large evenings, to keep large angle changes
+EVEN_OUT_LR_STEERING_ANGLES = True
+EVEN_BINS = [[0, .05], [.05, .12]]  # [.2, .5] # Take out large evenings, to keep large angle changes
 
-DEL_IMAGES = ['center_2016_12_01_13_38_02']
+DEL_IMAGES = ['2016_12_01_13_38_02']
 
 # Keep Perturbed Angles
 KEEP_PERTURBED_ANGLES = False
@@ -94,7 +94,7 @@ def full_train(path_orig='data/driving_log.csv',
     drive_df = pd.read_csv(path_save)
     drive_df.to_csv(path_full)
     import model
-    model.train(path=path_full, checkpoint_path="models/back_2_basics_lrc-{epoch:02d}.h5")
+    model.train(path=path_full, checkpoint_path="models/back_2_basics_c-{epoch:02d}.h5")
 
 
 def return_image(img, color_change=True):
@@ -118,15 +118,15 @@ def add_augment_steering_angles(drive_df, path):
     :return:
     """
     begin = len(drive_df)
-    for ix in range(0, 2):
-        original = drive_df[(pd.notnull(drive_df['left'])) & (~drive_df['center'].str.contains('BRIGHT'))]
-        original = original[abs(original['steering']) > .05]
-        original['steering2'] = original.apply(lambda x: x['steering'] + PERTURBED_ANGLE, axis=1)
-        del original['steering']
-        original = original.rename(columns={'steering2': 'steering'})
-        original.index = range(len(drive_df) + 1, len(drive_df) + 1 + len(original))
-        original['PERT'] = 1
-        drive_df = drive_df.append(original)
+    #for ix in range(0, 1):
+    original = drive_df[(pd.notnull(drive_df['left'])) & (~drive_df['center'].str.contains('BRIGHT'))]
+    original = original[abs(original['steering']) > .05]
+    original['steering2'] = original.apply(lambda x: x['steering'] + PERTURBED_ANGLE, axis=1)
+    del original['steering']
+    original = original.rename(columns={'steering2': 'steering'})
+    original.index = range(len(drive_df) + 1, len(drive_df) + 1 + len(original))
+    original['PERT'] = 1
+    drive_df = drive_df.append(original)
     end = len(drive_df)
     print('Augmented Steering Angles: {0} ({1})'.format(end, end - begin))
     drive_df.to_csv(path)
@@ -217,7 +217,7 @@ def add_brightness_augmented_images(drive_df, path):
     addition = {}
     choices = ['center', 'left', 'right']
     # I only want to translate the original images with all 3 images avail, not flipped images
-    for idx, row in drive_df[pd.notnull(drive_df['left'])].iterrows():
+    for idx, row in drive_df[(pd.notnull(drive_df['left'])) & (pd.isnull(drive_df['PERT']))].iterrows():
         addition[maxidx] = {'steering': row['steering']}
         for choice in choices:
             img_path = 'data/{0}'.format(row[choice].strip())
