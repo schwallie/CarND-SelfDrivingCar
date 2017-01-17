@@ -30,13 +30,13 @@ BATCH_SIZE = 256
 # This section is referred to in load_data.py
 #
 ####
-CHECKPOINT_PATH = "models/back_2_basics_lcr-{epoch:02d}.h5"
+CHECKPOINT_PATH = "models/back_2_basics_lcr_comma-{epoch:02d}.h5"
 TAKE_OUT_TRANSLATED_IMGS = True
 TAKE_OUT_BRIGHT_IMGS = False
 TAKE_OUT_FLIPPED = True
 EVEN_OUT_LR_STEERING_ANGLES = True
 KEEP_ALL_0_STEERING_VALS = False
-KEEP_1_OVER_X_0_STEERING_VALS = 4  # Lower == More kept images at 0 steering
+KEEP_1_OVER_X_0_STEERING_VALS = 1.5  # Lower == More kept images at 0 steering
 KEEP_PERTURBED_ANGLES = False
 #### DEPRECATED, Were used to fix bugs!
 TAKE_OUT_NONCENTER_TRANSLATED_IMAGES = False

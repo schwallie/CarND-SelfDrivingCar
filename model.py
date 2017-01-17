@@ -17,7 +17,7 @@ def steering_net():
     model = Sequential()
     # Vivek, color space conversion layer so the model automatically figures out the best color space
     model.add(Lambda(lambda x: x / 255. - .5,
-                     input_shape=(config.IMAGE_HEIGHT, config.IMAGE_WIDTH, 3)))
+                     input_shape=(config.IMAGE_HEIGHT, config.IMAGE_WIDTH, config.CHANNELS)))
     # model.add(Convolution2D(3, 1, 1, border_mode='same', name='color_conv'))
     # Subsample == stride
     # keras.layers.convolutional.Convolution2D(nb_filter, nb_row, nb_col, border_mode='valid')
