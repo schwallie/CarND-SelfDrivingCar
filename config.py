@@ -21,7 +21,7 @@ AUTONOMOUS_THROTTLE = .2
 # (160, 320) <-- Original Comma
 IMAGE_WIDTH = 64
 IMAGE_HEIGHT = 32
-LR = 1e-4
+LR = 1e-5
 OPTIMIZER = Adam(lr=LR)
 LOSS = 'mse'
 NB_EPOCH = 10
