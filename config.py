@@ -21,7 +21,7 @@ AUTONOMOUS_THROTTLE = .2
 # (160, 320) <-- Original Comma
 IMAGE_WIDTH = 64
 IMAGE_HEIGHT = 32
-LR = 1e-5
+LR = 1e-4
 OPTIMIZER = Adam(lr=LR)
 LOSS = 'mse'
 NB_EPOCH = 10
@@ -32,7 +32,7 @@ BATCH_SIZE = 256
 # This section is referred to in load_data.py
 #
 ####
-CHECKPOINT_PATH = "models/back_2_basics_lcr_comma-{epoch:02d}.h5"
+CHECKPOINT_PATH = "models/back_2_basics_lcr_comm-{epoch:02d}.h5"
 TAKE_OUT_TRANSLATED_IMGS = True
 TAKE_OUT_BRIGHT_IMGS = False
 TAKE_OUT_FLIPPED = False
@@ -66,7 +66,7 @@ PERTURBED_ANGLE_MIN = .05
 
 def full_train(override=False, path_full='data/full_driving_log.csv'):
     if not os.path.isfile(path_full) or override:
-        drive_df = build_augmented_files()
+        drive_df = build_augmented_files(override=override)
     else:
         drive_df = pd.read_csv(path_full)
     drive_df.to_csv(path_full)
@@ -78,25 +78,37 @@ def build_augmented_files(path_orig='data/driving_log.csv',
                           path_translations='data/translations_driving_log.csv',
                           path_bright='data/brightness_driving_log.csv',
                           path_angle_augment='data/altered_angle_driving_log.csv',
-                          path_full='data/full_driving_log.csv'):
+                          path_full='data/full_driving_log.csv', override=False):
     drive_df = pd.read_csv(path_orig, index_col=0)
     print('Original Len: {0}'.format(len(drive_df)))
-    print('Creating Slightly Altered Angles from Original')
-    augmented = add_augment_steering_angles(drive_df)
-    augmented.to_csv(path_angle_augment)
-    print(len(augmented))
-    print("Creating Flipped Files")
-    flipped = add_flipped_images(drive_df)
-    flipped.to_csv(path_flips)
-    print(len(flipped))
-    print('Creating Translated Files')
-    trans = add_translated_images(drive_df)
-    trans.to_csv(path_translations)
-    print(len(trans))
-    print('Creating Brightness')
-    bright = add_brightness_augmented_images(drive_df)
-    bright.to_csv(path_bright)
-    print(len(bright))
+    if override or not os.path.isfile(path_angle_augment):
+        print('Creating Slightly Altered Angles from Original')
+        augmented = add_augment_steering_angles(drive_df)
+        augmented.to_csv(path_angle_augment)
+    else:
+        augmented = pd.read_csv(path_angle_augment)
+    print('Augmented: {0}'.format(len(augmented)))
+    if override or not os.path.isfile(path_flips):
+        print("Creating Flipped Files")
+        flipped = add_flipped_images(drive_df)
+        flipped.to_csv(path_flips)
+    else:
+        flipped = pd.read_csv(path_flips)
+    print('Flipped: {0}'.format(len(flipped)))
+    if override or not os.path.isfile(path_translations):
+        print('Creating Translated Files')
+        trans = add_translated_images(drive_df)
+        trans.to_csv(path_translations)
+    else:
+        trans = pd.read_csv(path_translations)
+    print('Translations: {0}'.format(len(trans)))
+    if override or not os.path.isfile(path_bright):
+        print('Creating Brightness')
+        bright = add_brightness_augmented_images(drive_df)
+        bright.to_csv(path_bright)
+    else:
+        bright = pd.read_csv(path_bright)
+    print('Brightness: {0}'.format(len(bright)))
     # Concatenate everything
     for add_in in [augmented, flipped, trans, bright]:
         drive_df = drive_df.append(add_in)
@@ -111,8 +123,7 @@ def return_image(img, color_change=True):
     crop_img = img[int(img_shape[0] / 5):img_shape[0] - 20, 0:img_shape[1]]
     assert crop_img.shape[0] == IMAGE_HEIGHT_CROP
     assert crop_img.shape[1] == IMAGE_WIDTH_CROP
-    if color_change:
-        img = cv2.cvtColor(crop_img, cv2.COLOR_BGR2RGB)
+    img = cv2.cvtColor(crop_img, cv2.COLOR_BGR2RGB)
     img = (cv2.resize(img, (IMAGE_WIDTH, IMAGE_HEIGHT), interpolation=cv2.INTER_AREA))
     return np.float32(img)
 
@@ -166,16 +177,16 @@ def add_flipped_images(drive_df):
     print('Flipped Images: {0} ({1})'.format(end, end - begin))
     return new_df
 
-
 def trans_image(image, steer, trans_range):
     # Translation
     rows, cols, channels = image.shape
     tr_x = trans_range * np.random.uniform() - trans_range / 2
     steer_ang = steer + tr_x / trans_range * 2 * .2
-    tr_y = 40 * np.random.uniform() - 40 / 2
+    tr_y = 10 * np.random.uniform() - 10 / 2
     # tr_y = 0
     Trans_M = np.float32([[1, 0, tr_x], [0, 1, tr_y]])
     image_tr = cv2.warpAffine(image, Trans_M, (cols, rows))
+
     return image_tr, steer_ang
 
 
