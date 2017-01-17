@@ -1,9 +1,11 @@
 import os
-import model
+
 import cv2
 import numpy as np
 import pandas as pd
 from keras.optimizers import Adam
+
+import model
 
 pd.set_option('display.height', 1000)
 pd.set_option('display.max_rows', 500)
@@ -33,7 +35,7 @@ BATCH_SIZE = 256
 CHECKPOINT_PATH = "models/back_2_basics_lcr_comma-{epoch:02d}.h5"
 TAKE_OUT_TRANSLATED_IMGS = True
 TAKE_OUT_BRIGHT_IMGS = False
-TAKE_OUT_FLIPPED = True
+TAKE_OUT_FLIPPED = False
 EVEN_OUT_LR_STEERING_ANGLES = True
 KEEP_ALL_0_STEERING_VALS = False
 KEEP_1_OVER_X_0_STEERING_VALS = 1.5  # Lower == More kept images at 0 steering
@@ -59,38 +61,48 @@ EVEN_BINS = [[0, .05], [.05, .12]]  # [.2, .5] # Take out large evenings, to kee
 DEL_IMAGES = ['2016_12_01_13_38_02']
 # Keep Perturbed Angles
 PERTURBED_ANGLE = np.random.uniform(-1, 1) / 40
+PERTURBED_ANGLE_MIN = .05
 
 
-
-def full_train(path_orig='data/driving_log.csv',
-               path_altered='data/altered_driving_log.csv', path_altered_plus='data/altered_plus_driving_log.csv',
-               path_bright='data/brightness_driving_log.csv', path_angle_augment='data/altered_angle.csv',
-               path_full='data/full_driving_log.csv', override=False, path_save=None):
-    if not os.path.isfile(path_angle_augment) or override:
-        print('Creating Slightly Altered Angles')
-        drive_df = pd.read_csv(path_orig, index_col=0)
-        path_save = path_angle_augment
-        add_augment_steering_angles(drive_df, path_save)
-    if not os.path.isfile(path_altered) or override:
-        print("Creating Altered Files")
-        drive_df = pd.read_csv(path_save, index_col=0)
-        path_save = path_altered
-        add_flipped_images(drive_df, path_save)
-    if not os.path.isfile(path_altered_plus) or override:
-        print('Creating Translated Files')
-        drive_df = pd.read_csv(path_save, index_col=0)
-        path_save = path_altered_plus
-        add_translated_images(drive_df, path_save)
-    if not os.path.isfile(path_bright) or override:
-        print('Creating Brightness')
-        drive_df = pd.read_csv(path_save, index_col=0)
-        path_save = path_bright
-        add_brightness_augmented_images(drive_df, path_save)
-    if not path_save:
-        path_save = path_bright
-    drive_df = pd.read_csv(path_save)
+def full_train(override=False, path_full='data/full_driving_log.csv'):
+    if not os.path.isfile(path_full) or override:
+        drive_df = build_augmented_files()
+    else:
+        drive_df = pd.read_csv(path_full)
     drive_df.to_csv(path_full)
     model.train(model=model.comma_model(), path=path_full, checkpoint_path=CHECKPOINT_PATH)
+
+
+def build_augmented_files(path_orig='data/driving_log.csv',
+                          path_flips='data/flipped_driving_log.csv',
+                          path_translations='data/translations_driving_log.csv',
+                          path_bright='data/brightness_driving_log.csv',
+                          path_angle_augment='data/altered_angle_driving_log.csv',
+                          path_full='data/full_driving_log.csv'):
+    drive_df = pd.read_csv(path_orig, index_col=0)
+    print('Original Len: {0}'.format(len(drive_df)))
+    print('Creating Slightly Altered Angles from Original')
+    augmented = add_augment_steering_angles(drive_df)
+    augmented.to_csv(path_angle_augment)
+    print(len(augmented))
+    print("Creating Flipped Files")
+    flipped = add_flipped_images(drive_df)
+    flipped.to_csv(path_flips)
+    print(len(flipped))
+    print('Creating Translated Files')
+    trans = add_translated_images(drive_df)
+    trans.to_csv(path_translations)
+    print(len(trans))
+    print('Creating Brightness')
+    bright = add_brightness_augmented_images(drive_df)
+    bright.to_csv(path_bright)
+    print(len(bright))
+    # Concatenate everything
+    for add_in in [augmented, flipped, trans, bright]:
+        drive_df = drive_df.append(add_in)
+    print('Final LEN: {0}'.format(len(drive_df)))
+    drive_df.to_csv(path_full)
+    return drive_df
 
 
 def return_image(img, color_change=True):
@@ -105,7 +117,7 @@ def return_image(img, color_change=True):
     return np.float32(img)
 
 
-def add_augment_steering_angles(drive_df, path):
+def add_augment_steering_angles(drive_df):
     """
     The idea is to teach the Model that we can have slighlty adjusted angles
     Also adds more to the dataset
@@ -114,50 +126,45 @@ def add_augment_steering_angles(drive_df, path):
     :return:
     """
     begin = len(drive_df)
-    #for ix in range(0, 1):
-    original = drive_df[(pd.notnull(drive_df['left'])) & (~drive_df['center'].str.contains('BRIGHT'))]
-    original = original[abs(original['steering']) > .05]
+    # for ix in range(0, 1):
+    original = drive_df[abs(drive_df['steering']) > PERTURBED_ANGLE_MIN]
     original['steering2'] = original.apply(lambda x: x['steering'] + PERTURBED_ANGLE, axis=1)
     del original['steering']
     original = original.rename(columns={'steering2': 'steering'})
     original.index = range(len(drive_df) + 1, len(drive_df) + 1 + len(original))
     original['PERT'] = 1
-    drive_df = drive_df.append(original)
-    end = len(drive_df)
+    # drive_df = drive_df.append(original)
+    end = len(drive_df) + len(original)
     print('Augmented Steering Angles: {0} ({1})'.format(end, end - begin))
-    drive_df.to_csv(path)
+    return original
 
 
-def create_altered_drive_df(path):
-    import load_data
-    drive_df = load_data.load_drive_df('data/driving_log.csv')
-    drive_df.to_csv(path)
-
-
-def add_flipped_images(drive_df, path):
+def add_flipped_images(drive_df):
     begin = len(drive_df)
     maxidx = max(drive_df.index)
     addition = {}
     for idx, row in drive_df.iterrows():
-        if row['steering'] == 0:
-            continue
         # rnd = np.random.randint(2)
         # if rnd == 1:
-        maxidx += 1
         # Flip and created a new image
-        img_path = 'data/{0}'.format(row['center'])
-        new_path = 'IMG/FLIPPED_{0}'.format(row['center'].split('/')[-1])
-        img = cv2.imread(img_path)
-        img = np.array(img)
-        img = np.fliplr(img)
-        cv2.imwrite('data/{0}'.format(new_path), img)
-        steer = -row['steering']
-        addition[maxidx] = {'center': new_path, 'steering': steer}
+        for path in ['center', 'left', 'right']:
+            if row['steering'] == 0 and path == 'center':
+                # Flipping 0 steering doesn't make any sense?
+                continue
+            maxidx += 1
+            steer = -row['steering']
+            img_path = 'data/{0}'.format(row[path].strip())
+            new_path = 'IMG/FLIPPED_{0}'.format(row[path].split('/')[-1])
+            img = cv2.imread(img_path)
+            img = np.array(img)
+            img = np.fliplr(img)
+            cv2.imwrite('data/{0}'.format(new_path), img)
+            addition[maxidx] = {'steering': steer, path: new_path}
     new_df = pd.DataFrame.from_dict(addition, orient='index')
-    drive_df = drive_df.append(new_df)
-    end = len(drive_df)
+    # drive_df = drive_df.append(new_df)
+    end = len(drive_df) + len(new_df)
     print('Flipped Images: {0} ({1})'.format(end, end - begin))
-    drive_df.to_csv(path)
+    return new_df
 
 
 def trans_image(image, steer, trans_range):
@@ -172,31 +179,27 @@ def trans_image(image, steer, trans_range):
     return image_tr, steer_ang
 
 
-def add_translated_images(drive_df, path):
+def add_translated_images(drive_df):
     begin = len(drive_df)
     maxidx = max(drive_df.index)
     addition = {}
-    choices = ['center']  # 'left', 'right'
+    choices = ['center', 'left', 'right']
     # I only want to translate the original images with all 3 images avail, not flipped images
-    for idx, row in drive_df[pd.notnull(drive_df['left'])].iterrows():
-        addition[maxidx] = {}
+    for idx, row in drive_df.iterrows():
         for choice in choices:
+            addition[maxidx] = {}
             img_path = 'data/{0}'.format(row[choice].strip())
             new_path = 'IMG/TRANS_{0}'.format(row[choice].split('/')[-1])
             img = cv2.imread(img_path)
-            # ERROR: If this is L/R I need to use row['steering'] +- ANGLE!!
-            # TODO: Be able to translate non-center
             img, steer = trans_image(img, row['steering'], 150)
             cv2.imwrite('data/{0}'.format(new_path), img)
-            addition[maxidx][choice] = new_path
-            if choice == 'center':
-                addition[maxidx]['steering'] = steer
-        maxidx += 1
+            addition[maxidx] = {choice: new_path, 'steering': steer}
+            maxidx += 1
     new_df = pd.DataFrame.from_dict(addition, orient='index')
-    drive_df = drive_df.append(new_df)
-    end = len(drive_df)
+    # drive_df = drive_df.append(new_df)
+    end = len(drive_df) + len(new_df)
     print('Translations: {0} ({1})'.format(end, end - begin))
-    drive_df.to_csv(path)
+    return new_df
 
 
 def augment_brightness_camera_images(image):
@@ -207,13 +210,13 @@ def augment_brightness_camera_images(image):
     return image1
 
 
-def add_brightness_augmented_images(drive_df, path):
+def add_brightness_augmented_images(drive_df):
     begin = len(drive_df)
     maxidx = max(drive_df.index)
     addition = {}
     choices = ['center', 'left', 'right']
     # I only want to translate the original images with all 3 images avail, not flipped images
-    for idx, row in drive_df[(pd.notnull(drive_df['left'])) & (pd.isnull(drive_df['PERT']))].iterrows():
+    for idx, row in drive_df.iterrows():
         addition[maxidx] = {'steering': row['steering']}
         for choice in choices:
             img_path = 'data/{0}'.format(row[choice].strip())
@@ -224,10 +227,10 @@ def add_brightness_augmented_images(drive_df, path):
             addition[maxidx][choice] = new_path
         maxidx += 1
     new_df = pd.DataFrame.from_dict(addition, orient='index')
-    drive_df = drive_df.append(new_df)
-    end = len(drive_df)
+    # drive_df = drive_df.append(new_df)
+    end = len(drive_df) + len(new_df)
     print('Brightness Augment: {0} ({1})'.format(end, end - begin))
-    drive_df.to_csv(path)
+    return new_df
 
 
 def vis(df=None, rn=None, img_view='center', img=None):
