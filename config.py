@@ -1,5 +1,5 @@
 import os
-
+import model
 import cv2
 import numpy as np
 import pandas as pd
@@ -30,39 +30,36 @@ BATCH_SIZE = 256
 # This section is referred to in load_data.py
 #
 ####
+CHECKPOINT_PATH = "models/back_2_basics_lcr-{epoch:02d}.h5"
+TAKE_OUT_TRANSLATED_IMGS = True
+TAKE_OUT_BRIGHT_IMGS = False
+TAKE_OUT_FLIPPED = True
+EVEN_OUT_LR_STEERING_ANGLES = True
+KEEP_ALL_0_STEERING_VALS = False
+KEEP_1_OVER_X_0_STEERING_VALS = 4  # Lower == More kept images at 0 steering
+KEEP_PERTURBED_ANGLES = False
+#### DEPRECATED, Were used to fix bugs!
+TAKE_OUT_NONCENTER_TRANSLATED_IMAGES = False
+TAKE_OUT_FLIPPED_0_STEERING = False
 
 # Mean smoothing for the steering column
 # TODO: Found bug on steer smoothing, where it has to be ordered by time (duh)
 SMOOTH_STEERING = False
 STEER_SMOOTHING_WINDOW = 3
-
 # Take only images with throttle being used
 # If wanting to activate, set to some threshold(i.e., .25), if not, use False
 TAKE_OUT_LOW_THROTTLE = False
-TAKE_OUT_TRANSLATED_IMGS = True
-TAKE_OUT_BRIGHT_IMGS = False
-TAKE_OUT_FLIPPED = True
 # Too many vals at 0 steering, need to take some out to prevent driving straight
-KEEP_ALL_0_STEERING_VALS = False
-KEEP_1_OVER_X_0_STEERING_VALS = 4  # Lower == More kept images at 0 steering
 CAMERAS_TO_USE = 3  # 1 for Center, 3 for L/R/C
 # Steering adjustmenet for L/R images
 L_STEERING_ADJUSTMENT = .25
 R_STEERING_ADJUSTMENT = .25
-
 # Even out skew on L/R steering angles
-EVEN_OUT_LR_STEERING_ANGLES = True
 EVEN_BINS = [[0, .05], [.05, .12]]  # [.2, .5] # Take out large evenings, to keep large angle changes
-
 DEL_IMAGES = ['2016_12_01_13_38_02']
-
 # Keep Perturbed Angles
-KEEP_PERTURBED_ANGLES = False
 PERTURBED_ANGLE = np.random.uniform(-1, 1) / 40
 
-#### DEPRECATED, Were used to fix bugs!
-TAKE_OUT_NONCENTER_TRANSLATED_IMAGES = False
-TAKE_OUT_FLIPPED_0_STEERING = False
 
 
 def full_train(path_orig='data/driving_log.csv',
@@ -93,8 +90,7 @@ def full_train(path_orig='data/driving_log.csv',
         path_save = path_bright
     drive_df = pd.read_csv(path_save)
     drive_df.to_csv(path_full)
-    import model
-    model.train(path=path_full, checkpoint_path="models/back_2_basics_c-{epoch:02d}.h5")
+    model.train(model=model.comma_model(), path=path_full, checkpoint_path=CHECKPOINT_PATH)
 
 
 def return_image(img, color_change=True):

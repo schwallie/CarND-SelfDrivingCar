@@ -74,8 +74,7 @@ def generate_arrays(X_train, y_train):
         yield batch_images, batch_steering
 
 
-def train(path='data/full_driving_log.csv', checkpoint_path="models/comma_model_no_validate-{epoch:02d}.h5",
-          model=comma_model()):
+def train(model, path='data/full_driving_log.csv', checkpoint_path="models/comma_model_no_validate-{epoch:02d}.h5",):
     model = get_model(model)
     X_train, y_train = load_data.load_data(path=path)
     print(model.summary())
@@ -88,18 +87,18 @@ def train(path='data/full_driving_log.csv', checkpoint_path="models/comma_model_
                         nb_epoch=config.NB_EPOCH, verbose=1, callbacks=[checkpoint])
 
 
-def get_model(model=comma_model()):  # steering_net()
+def get_model(model):  # steering_net()
     model.compile(loss=config.LOSS, optimizer=config.OPTIMIZER)
     return model
 
 
-def load_saved_model(path, model=comma_model()):
+def load_saved_model(path, model):
     model = get_model(model)
     model.load_weights(path)
     return model
 
 
-def save_model(path, model=comma_model()):
+def save_model(path, model):
     import json
     model.load_weights(path)
     json_string = model.to_json()
