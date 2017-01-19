@@ -32,12 +32,12 @@ BATCH_SIZE = 500
 # This section is referred to in load_data.py
 #
 ####
-CHECKPOINT_PATH = "models/nvidia_real_crops_trans-{epoch:02d}.h5"
+CHECKPOINT_PATH = "models/nvidia_real_crops_trans_center-{epoch:02d}.h5"
 TAKE_OUT_TRANSLATED_IMGS = False
 TAKE_OUT_BRIGHT_IMGS = False
 TAKE_OUT_FLIPPED = False
 EVEN_OUT_LR_STEERING_ANGLES = True
-KEEP_ALL_0_STEERING_VALS = False
+KEEP_ALL_0_STEERING_VALS = True
 KEEP_1_OVER_X_0_STEERING_VALS = 1.5  # Lower == More kept images at 0 steering
 KEEP_PERTURBED_ANGLES = True
 #### DEPRECATED, Were used to fix bugs!
@@ -52,7 +52,7 @@ STEER_SMOOTHING_WINDOW = 3
 # If wanting to activate, set to some threshold(i.e., .25), if not, use False
 TAKE_OUT_LOW_THROTTLE = False
 # Too many vals at 0 steering, need to take some out to prevent driving straight
-CAMERAS_TO_USE = 3  # 1 for Center, 3 for L/R/C
+CAMERAS_TO_USE = 1  # 1 for Center, 3 for L/R/C
 # Steering adjustmenet for L/R images
 L_STEERING_ADJUSTMENT = .25
 R_STEERING_ADJUSTMENT = .25
