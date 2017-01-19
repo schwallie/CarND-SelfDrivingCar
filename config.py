@@ -118,12 +118,10 @@ def return_image(img, color_change=True):
     # Take out the dash and horizon
     img_shape = img.shape
     img = img[60:img_shape[0] - 25, 0:img_shape[1]]
-    print(img.shape)
     # assert crop_img.shape[0] == IMAGE_HEIGHT_CROP
     # assert crop_img.shape[1] == IMAGE_WIDTH_CROP
     img = cv2.cvtColor(img, cv2.COLOR_BGR2RGB)
     img = (cv2.resize(img, (IMAGE_WIDTH, IMAGE_HEIGHT), interpolation=cv2.INTER_AREA))
-    print(img.shape)
     return np.float32(img)
 
 
