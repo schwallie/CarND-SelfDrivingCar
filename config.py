@@ -32,13 +32,13 @@ BATCH_SIZE = 500
 # This section is referred to in load_data.py
 #
 ####
-CHECKPOINT_PATH = "models/nvidia_real_crops-{epoch:02d}.h5"
-TAKE_OUT_TRANSLATED_IMGS = True
+CHECKPOINT_PATH = "models/nvidia_real_crops_trans-{epoch:02d}.h5"
+TAKE_OUT_TRANSLATED_IMGS = False
 TAKE_OUT_BRIGHT_IMGS = False
 TAKE_OUT_FLIPPED = False
 EVEN_OUT_LR_STEERING_ANGLES = True
-KEEP_ALL_0_STEERING_VALS = True
-KEEP_1_OVER_X_0_STEERING_VALS = 3  # Lower == More kept images at 0 steering
+KEEP_ALL_0_STEERING_VALS = False
+KEEP_1_OVER_X_0_STEERING_VALS = 1.5  # Lower == More kept images at 0 steering
 KEEP_PERTURBED_ANGLES = True
 #### DEPRECATED, Were used to fix bugs!
 TAKE_OUT_NONCENTER_TRANSLATED_IMAGES = False

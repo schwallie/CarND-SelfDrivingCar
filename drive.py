@@ -39,7 +39,7 @@ def telemetry(sid, data):
     else:
         throttle = config.AUTONOMOUS_THROTTLE
     if abs(steering_angle) > .07:
-        steering_angle = steering_angle * 1.3
+        steering_angle = steering_angle # * 1.3
     print('Angle: {0}, Throttle: {1}'.format(round(steering_angle, 4), throttle))
     send_control(steering_angle, throttle)
 
