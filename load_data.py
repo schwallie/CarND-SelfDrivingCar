@@ -11,7 +11,7 @@ def load_data(path='data/full_driving_log.csv'):  # altered_driving_log.csv
     y_data = final_df[steering].values
     y_data = np.float32(y_data)
     # Shuffle since I'm not doing validation train_test_split
-    return shuffle(X_data, y_data)
+    return train_test_split(X_data, y_data, test_size=.1, random_state=42)
 
 
 def return_final_df(path='data/full_driving_log.csv'):

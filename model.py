@@ -87,7 +87,7 @@ def generate_arrays(X_train, y_train, batch_size):
 
 
 def train(model, path, checkpoint_path):
-    X_train, y_train = load_data.load_data(path=path)
+    X_train, X_test, y_train, y_test = load_data.load_data(path=path)
     print(model.summary())
     print('X_train samples: {0}'.format(len(X_train)))
     SAMPLES_PER_EPOCH = 50000 # math.floor((len(X_train) // config.BATCH_SIZE * config.BATCH_SIZE) / 2)
@@ -95,7 +95,8 @@ def train(model, path, checkpoint_path):
     checkpoint = ModelCheckpoint(checkpoint_path, verbose=1, save_best_only=False, save_weights_only=True, mode='auto')
     model.fit_generator(generate_arrays(X_train, y_train, config.BATCH_SIZE),
                         samples_per_epoch=SAMPLES_PER_EPOCH,
-                        nb_epoch=config.NB_EPOCH, verbose=1, callbacks=[checkpoint])
+                        nb_epoch=config.NB_EPOCH, verbose=1, callbacks=[checkpoint],
+                        validation_data=(X_test, y_test))
 
 def load_saved_model(path, model):
     model.load_weights(path)
