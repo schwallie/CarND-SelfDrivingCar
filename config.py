@@ -25,14 +25,14 @@ LR = 1e-5
 OPTIMIZER = Adam(lr=LR)
 LOSS = 'mse'
 NB_EPOCH = 20
-BATCH_SIZE = 500
+BATCH_SIZE = 400
 
 ####
 #
 # This section is referred to in load_data.py
 #
 ####
-CHECKPOINT_PATH = "models/nvidia_color_trans_keep_all-{epoch:02d}.h5"
+CHECKPOINT_PATH = "models/nvidia_color_trans_keep_all_w_val-{epoch:02d}.h5"
 TAKE_OUT_TRANSLATED_IMGS = False
 TAKE_OUT_BRIGHT_IMGS = False
 TAKE_OUT_FLIPPED = False
