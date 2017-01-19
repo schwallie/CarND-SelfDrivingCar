@@ -25,17 +25,17 @@ LR = 1e-5
 OPTIMIZER = Adam(lr=LR)
 LOSS = 'mse'
 NB_EPOCH = 20
-BATCH_SIZE = 400
+BATCH_SIZE = 200
 
 ####
 #
 # This section is referred to in load_data.py
 #
 ####
-CHECKPOINT_PATH = "models/comma_color_trans_keep_all_w_val-{epoch:02d}.h5"
+CHECKPOINT_PATH = "models/comma_no_flip-{epoch:02d}.h5"
 TAKE_OUT_TRANSLATED_IMGS = False
 TAKE_OUT_BRIGHT_IMGS = False
-TAKE_OUT_FLIPPED = False
+TAKE_OUT_FLIPPED = True
 EVEN_OUT_LR_STEERING_ANGLES = False
 KEEP_ALL_0_STEERING_VALS = True
 KEEP_1_OVER_X_0_STEERING_VALS = 3  # Lower == More kept images at 0 steering
