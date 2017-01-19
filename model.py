@@ -85,7 +85,8 @@ def generate_arrays(X_train, y_train, batch_size):
 
 
 def train(model, path, checkpoint_path):
-    X_train, X_test, y_train, y_test = load_data.load_data(path=path)
+    X_train, X_validate, y_train, y_validate = load_data.load_data(path=path)
+    X_validate = [config.return_image(cv2.imread(f)) for f in X_validate]
     print(model.summary())
     print('X_train samples: {0}'.format(len(X_train)))
     SAMPLES_PER_EPOCH = 50000 # math.floor((len(X_train) // config.BATCH_SIZE * config.BATCH_SIZE) / 2)
@@ -94,7 +95,7 @@ def train(model, path, checkpoint_path):
     model.fit_generator(generate_arrays(X_train, y_train, config.BATCH_SIZE),
                         samples_per_epoch=SAMPLES_PER_EPOCH,
                         nb_epoch=config.NB_EPOCH, verbose=1, callbacks=[checkpoint],
-                        validation_data=(X_test, y_test))
+                        validation_data=(np.asarray(X_validate), np.asarray(y_validate)))
 
 def load_saved_model(path, model):
     model.load_weights(path)
