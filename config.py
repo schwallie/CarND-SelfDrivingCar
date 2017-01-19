@@ -10,7 +10,7 @@ pd.set_option('display.height', 1000)
 pd.set_option('display.max_rows', 500)
 pd.set_option('display.max_columns', 500)
 pd.set_option('display.width', 1000)
-
+# Bridges = IMG/FLIPPED_center_2016_12_01_13_35_39_514.jpg, IMG/left_2016_12_01_13_35_36_686.jpg
 # Original Image: (320, 160, 3)
 IMAGE_HEIGHT_CROP = 108
 IMAGE_WIDTH_CROP = 320
@@ -32,11 +32,11 @@ BATCH_SIZE = 500
 # This section is referred to in load_data.py
 #
 ####
-CHECKPOINT_PATH = "models/nvidia_extracrop_even_angles-{epoch:02d}.h5"
-TAKE_OUT_TRANSLATED_IMGS = False
+CHECKPOINT_PATH = "models/nvidia_real_crops-{epoch:02d}.h5"
+TAKE_OUT_TRANSLATED_IMGS = True
 TAKE_OUT_BRIGHT_IMGS = False
 TAKE_OUT_FLIPPED = False
-EVEN_OUT_LR_STEERING_ANGLES = True
+EVEN_OUT_LR_STEERING_ANGLES = False
 KEEP_ALL_0_STEERING_VALS = True
 KEEP_1_OVER_X_0_STEERING_VALS = 3  # Lower == More kept images at 0 steering
 KEEP_PERTURBED_ANGLES = True
@@ -117,11 +117,13 @@ def build_augmented_files(path_orig='data/driving_log.csv',
 def return_image(img, color_change=True):
     # Take out the dash and horizon
     img_shape = img.shape
-    crop_img = img[int(img_shape[0] / 5):img_shape[0] - 30, 0:img_shape[1]]
+    img = img[60:img_shape[0] - 25, 0:img_shape[1]]
+    print(img.shape)
     # assert crop_img.shape[0] == IMAGE_HEIGHT_CROP
     # assert crop_img.shape[1] == IMAGE_WIDTH_CROP
-    img = cv2.cvtColor(crop_img, cv2.COLOR_BGR2RGB)
+    img = cv2.cvtColor(img, cv2.COLOR_BGR2RGB)
     img = (cv2.resize(img, (IMAGE_WIDTH, IMAGE_HEIGHT), interpolation=cv2.INTER_AREA))
+    print(img.shape)
     return np.float32(img)
 
 
@@ -278,7 +280,7 @@ def vis(df=None, rn=None, img_view='img_path', img=None):
     print(df.iloc[rn]['{0}_steering'.format(img_view)])
     img = np.array(cv2.imread(path))
     img_shape = img.shape
-    img = img[int(img_shape[0] / 5):img_shape[0] - 20, 0:img_shape[1]]
+    img = img[100:img_shape[0] - 20, 0:img_shape[1]]
     img = cv2.cvtColor(img, cv2.COLOR_BGR2RGB)
     plt.imshow(img)
     plt.show()
