@@ -86,7 +86,7 @@ def generate_arrays(X_train, y_train, batch_size):
 
 def train(model, path, checkpoint_path):
     X_train, X_validate, y_train, y_validate = load_data.load_data(path=path)
-    X_validate = [config.return_image(cv2.imread(f)) for f in X_validate]
+    X_validate = [config.return_image(cv2.imread('data/{0}'.format(f.strip()))) for f in X_validate]
     print(model.summary())
     print('X_train samples: {0}'.format(len(X_train)))
     SAMPLES_PER_EPOCH = 50000 # math.floor((len(X_train) // config.BATCH_SIZE * config.BATCH_SIZE) / 2)
