@@ -34,10 +34,12 @@ def telemetry(sid, data):
     # This model currently assumes that the features of the model are just the images. Feel free to change this.
     steering_angle = float(saved_model.predict(image_array, batch_size=1)) * config.STEERING_ADJUSTMENT
     # The driving model currently just outputs a constant throttle. Feel free to edit this.
-    if abs(steering_angle) > .1:
+    if abs(steering_angle) > .07:
         throttle = .01
     else:
         throttle = config.AUTONOMOUS_THROTTLE
+    if abs(steering_angle) > .05:
+        steering_angle = steering_angle
     print('Angle: {0}, Throttle: {1}'.format(round(steering_angle, 4), throttle))
     send_control(steering_angle, throttle)
 
@@ -58,7 +60,7 @@ def send_control(steering_angle, throttle):
 if __name__ == '__main__':
     import model
     import config
-    saved_model = model.load_saved_model('model.h5', model=model.comma_model())
+    saved_model = model.load_saved_model('model.h5', model=model.steering_net())
     # wrap Flask application with engineio's middleware
     app = socketio.Middleware(sio, app)
     # deploy as an eventlet WSGI server

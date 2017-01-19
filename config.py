@@ -4,7 +4,6 @@ import cv2
 import numpy as np
 import pandas as pd
 from keras.optimizers import Adam
-
 import model
 
 pd.set_option('display.height', 1000)
@@ -12,34 +11,35 @@ pd.set_option('display.max_rows', 500)
 pd.set_option('display.max_columns', 500)
 pd.set_option('display.width', 1000)
 
+# Original Image: (320, 160, 3)
 IMAGE_HEIGHT_CROP = 108
 IMAGE_WIDTH_CROP = 320
-CHANNELS = 3
 STEERING_ADJUSTMENT = 1
 AUTONOMOUS_THROTTLE = .2
 # (200, 66) <-- Original NVIDIA Paper
-# (160, 320) <-- Original Comma
-IMAGE_WIDTH = 64
-IMAGE_HEIGHT = 32
+# (320, 160) <-- Original Comma
+IMAGE_WIDTH = 200
+IMAGE_HEIGHT = 66
+CHANNELS = 3
 LR = 1e-5
 OPTIMIZER = Adam(lr=LR)
 LOSS = 'mse'
-NB_EPOCH = 10
-BATCH_SIZE = 256
+NB_EPOCH = 20
+BATCH_SIZE = 500
 
 ####
 #
 # This section is referred to in load_data.py
 #
 ####
-CHECKPOINT_PATH = "models/back_2_basics_lcr_comm-{epoch:02d}.h5"
-TAKE_OUT_TRANSLATED_IMGS = True
+CHECKPOINT_PATH = "models/nvidia_pretrained_extracrop-{epoch:02d}.h5"
+TAKE_OUT_TRANSLATED_IMGS = False
 TAKE_OUT_BRIGHT_IMGS = False
 TAKE_OUT_FLIPPED = False
-EVEN_OUT_LR_STEERING_ANGLES = True
-KEEP_ALL_0_STEERING_VALS = False
-KEEP_1_OVER_X_0_STEERING_VALS = 1.5  # Lower == More kept images at 0 steering
-KEEP_PERTURBED_ANGLES = False
+EVEN_OUT_LR_STEERING_ANGLES = False
+KEEP_ALL_0_STEERING_VALS = True
+KEEP_1_OVER_X_0_STEERING_VALS = 3  # Lower == More kept images at 0 steering
+KEEP_PERTURBED_ANGLES = True
 #### DEPRECATED, Were used to fix bugs!
 TAKE_OUT_NONCENTER_TRANSLATED_IMAGES = False
 TAKE_OUT_FLIPPED_0_STEERING = False
@@ -57,20 +57,17 @@ CAMERAS_TO_USE = 3  # 1 for Center, 3 for L/R/C
 L_STEERING_ADJUSTMENT = .25
 R_STEERING_ADJUSTMENT = .25
 # Even out skew on L/R steering angles
-EVEN_BINS = [[0, .05], [.05, .12]]  # [.2, .5] # Take out large evenings, to keep large angle changes
 DEL_IMAGES = ['2016_12_01_13_38_02']
 # Keep Perturbed Angles
 PERTURBED_ANGLE = np.random.uniform(-1, 1) / 40
 PERTURBED_ANGLE_MIN = .05
 
 
-def full_train(override=False, path_full='data/full_driving_log.csv'):
-    if not os.path.isfile(path_full) or override:
-        drive_df = build_augmented_files(override=override)
-    else:
-        drive_df = pd.read_csv(path_full)
-    drive_df.to_csv(path_full)
-    model.train(model=model.comma_model(), path=path_full, checkpoint_path=CHECKPOINT_PATH)
+def full_train(path_full='data/full_driving_log.csv', prev_model=False):
+    new_model = model.steering_net()
+    if prev_model:
+        new_model = model.load_saved_model(prev_model, new_model)
+    model.train(model=new_model, path=path_full, checkpoint_path=CHECKPOINT_PATH)
 
 
 def build_augmented_files(path_orig='data/driving_log.csv',
@@ -120,9 +117,9 @@ def build_augmented_files(path_orig='data/driving_log.csv',
 def return_image(img, color_change=True):
     # Take out the dash and horizon
     img_shape = img.shape
-    crop_img = img[int(img_shape[0] / 5):img_shape[0] - 20, 0:img_shape[1]]
-    assert crop_img.shape[0] == IMAGE_HEIGHT_CROP
-    assert crop_img.shape[1] == IMAGE_WIDTH_CROP
+    crop_img = img[int(img_shape[0] / 5):img_shape[0] - 30, 0:img_shape[1]]
+    # assert crop_img.shape[0] == IMAGE_HEIGHT_CROP
+    # assert crop_img.shape[1] == IMAGE_WIDTH_CROP
     img = cv2.cvtColor(crop_img, cv2.COLOR_BGR2RGB)
     img = (cv2.resize(img, (IMAGE_WIDTH, IMAGE_HEIGHT), interpolation=cv2.INTER_AREA))
     return np.float32(img)
@@ -159,9 +156,9 @@ def add_flipped_images(drive_df):
         # if rnd == 1:
         # Flip and created a new image
         for path in ['center', 'left', 'right']:
-            if row['steering'] == 0 and path == 'center':
+            """if row['steering'] == 0 and path == 'center':
                 # Flipping 0 steering doesn't make any sense?
-                continue
+                continue"""
             maxidx += 1
             steer = -row['steering']
             img_path = 'data/{0}'.format(row[path].strip())
@@ -170,12 +167,15 @@ def add_flipped_images(drive_df):
             img = np.array(img)
             img = np.fliplr(img)
             cv2.imwrite('data/{0}'.format(new_path), img)
-            addition[maxidx] = {'steering': steer, path: new_path}
+            addition[maxidx] = {'steering': steer, path: new_path,
+                                'throttle': row['throttle'],
+                                'speed': row['speed']}
     new_df = pd.DataFrame.from_dict(addition, orient='index')
     # drive_df = drive_df.append(new_df)
     end = len(drive_df) + len(new_df)
     print('Flipped Images: {0} ({1})'.format(end, end - begin))
     return new_df
+
 
 def trans_image(image, steer, trans_range):
     # Translation
@@ -204,7 +204,9 @@ def add_translated_images(drive_df):
             img = cv2.imread(img_path)
             img, steer = trans_image(img, row['steering'], 150)
             cv2.imwrite('data/{0}'.format(new_path), img)
-            addition[maxidx] = {choice: new_path, 'steering': steer}
+            addition[maxidx] = {choice: new_path, 'steering': steer,
+                                'throttle': row['throttle'],
+                                'speed': row['speed']}
             maxidx += 1
     new_df = pd.DataFrame.from_dict(addition, orient='index')
     # drive_df = drive_df.append(new_df)
@@ -228,7 +230,9 @@ def add_brightness_augmented_images(drive_df):
     choices = ['center', 'left', 'right']
     # I only want to translate the original images with all 3 images avail, not flipped images
     for idx, row in drive_df.iterrows():
-        addition[maxidx] = {'steering': row['steering']}
+        addition[maxidx] = {'steering': row['steering'],
+                            'throttle': row['throttle'],
+                            'speed': row['speed']}
         for choice in choices:
             img_path = 'data/{0}'.format(row[choice].strip())
             new_path = 'IMG/BRIGHT_{0}'.format(row[choice].split('/')[-1])
@@ -244,7 +248,7 @@ def add_brightness_augmented_images(drive_df):
     return new_df
 
 
-def vis(df=None, rn=None, img_view='center', img=None):
+def vis(df=None, rn=None, img_view='img_path', img=None):
     """
     Bad learning images:
     IMG/center_2016_12_01_13_38_02_790.jpg
@@ -279,6 +283,25 @@ def vis(df=None, rn=None, img_view='center', img=None):
     plt.imshow(img)
     plt.show()
     return df
+
+
+def plot_camera_images(df):
+    import matplotlib.pyplot as plt
+    images = []
+    for ix in ['FLIPPED', 'BRIGHT', 'TRANS', 'left']:
+        piece = df[df.img_path.str.contains(ix)]
+        rnd = np.random.choice(piece.index, 1)
+        images.append([piece.loc[rnd]['steering'],
+                       return_image(cv2.imread('data/{0}'.format(piece.loc[rnd]['img_path'].iloc[0].strip()))),
+                       piece.loc[rnd]['img_path'].iloc[0].strip()])
+    for ix, image in enumerate(images):
+        plt.subplot(2, 2, ix + 1)
+        steering = image[0]
+        img_path = image[-1]
+        print(img_path)
+        plt.imshow(image[1], aspect='auto')
+        plt.axis('off')
+        plt.title("%s, steering %.2f" % (img_path, steering))
 
 
 """

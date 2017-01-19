@@ -85,9 +85,9 @@ def make_final_df(drive_df, steering):
     drive_df.index = range(0, len(drive_df))
     drive_df = drive_df.rename(columns={steering: 'center_steering'})
     final_df = pd.concat(
-        [drive_df[pd.notnull(drive_df['left'])][['left', 'left_steering', 'PERT']],
-         drive_df[pd.notnull(drive_df['center'])][['center', 'center_steering', 'PERT']],
-         drive_df[pd.notnull(drive_df['right'])][['right', 'right_steering', 'PERT']]])
+        [drive_df[pd.notnull(drive_df['left'])][['left', 'left_steering', 'PERT', 'throttle', 'speed']],
+         drive_df[pd.notnull(drive_df['center'])][['center', 'center_steering', 'PERT', 'throttle', 'speed']],
+         drive_df[pd.notnull(drive_df['right'])][['right', 'right_steering', 'PERT', 'throttle', 'speed']]])
     final_df = final_df.rename(columns={'center': 'img_path', 'center_steering': steering})
     final_df['img_path'] = final_df['img_path'].fillna(final_df['right'])
     final_df['img_path'] = final_df['img_path'].fillna(final_df['left'])
@@ -234,10 +234,12 @@ def even_out_steering_angles(final_df, steering, bins):
     """
     pos_begin = len(final_df[(final_df[steering] > 0)])
     neg_begin = len(final_df[(final_df[steering] < 0)])
-    for rng in bins:
-        final_df.index = range(0, len(final_df))
-        pos = final_df[(final_df[steering] > rng[0]) & (final_df[steering] <= rng[1])]
-        neg = final_df[(final_df[steering] < -rng[0]) & (final_df[steering] >= -rng[1])]
+    step = .05
+    for rng in np.arange(0, 1.2, step):
+        pos = final_df[(final_df[steering] > rng) & (final_df[steering] <= rng+step)]
+        neg = final_df[(final_df[steering] < -rng) & (final_df[steering] >= -rng-step)]
+        if len(pos) < 10 or len(neg) < 10:
+            continue
         # Taking out small angles only that are L or R
         if len(pos) > len(neg):
             diff = len(pos) - len(neg)
@@ -249,8 +251,8 @@ def even_out_steering_angles(final_df, steering, bins):
         final_df.loc[:, 'ix'] = final_df.index
         final_df = final_df[~(final_df['ix'].isin(deleted))]
         del final_df['ix']
-        pos_end = len(final_df[(final_df[steering] > rng[0]) & (final_df[steering] <= rng[1])])
-        neg_end = len(final_df[(final_df[steering] < -rng[0]) & (final_df[steering] >= -rng[1])])
+        pos_end = len(final_df[(final_df[steering] > rng) & (final_df[steering] <= rng+step)])
+        neg_end = len(final_df[(final_df[steering] < -rng) & (final_df[steering] >= -rng-step)])
         print('END: {0}, Positive Steering: {1} ({2}), Negative Steering: {3} ({4})'.format(rng,
                                                                                             len(pos),
                                                                                             pos_end - len(pos),
@@ -264,6 +266,7 @@ def even_out_steering_angles(final_df, steering, bins):
 
 
 def print_data_makeup(final_df, steering):
+    import cufflinks
     pos = final_df[(final_df[steering] > 0)]
     neg = final_df[(final_df[steering] < 0)]
     zero = final_df[final_df[steering] == 0]
@@ -271,12 +274,16 @@ def print_data_makeup(final_df, steering):
                                                                                                 len(neg), len(zero)))
     print('Low Angle Steering: <.05, {0}'.format(len(final_df[abs(final_df[steering]) < .05])))
     print('High Angle Steering: >.25, {0}'.format(len(final_df[abs(final_df[steering]) > .25])))
+    for ang in [[0, .03], [.03, .06], [.06, .09], [.09,.12], [.12, .16], [.16,.2], [.2, .25], [.25, .35], [.35, 2]]:
+        print('{0}. Neg: {1},  Pos: {2}'.format(ang, len(final_df[(final_df[steering] < -ang[0]) & (final_df[steering] > -ang[1])]),
+                                                len(final_df[(final_df[steering] > ang[0]) & (final_df[steering] < ang[1])])))
     print('Translated Images: {0}'.format(len(final_df[final_df.img_path.str.contains('TRANS')])))
     print('Brightened Images: {0}'.format(len(final_df[final_df.img_path.str.contains('BRIGHT')])))
     print('Flipped Images: {0}'.format(len(final_df[final_df.img_path.str.contains('FLIP')])))
     print('Left Images: {0}, Right Images: {1}, Center Images: {2}'.format(
         len(final_df[final_df.img_path.str.contains('left')]), len(final_df[final_df.img_path.str.contains('right')]),
         len(final_df[final_df.img_path.str.contains('center')])))
+
 
 
 def return_validation(path='data/driving_log.csv'):
