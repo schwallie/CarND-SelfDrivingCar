@@ -32,7 +32,7 @@ def cut_out_pieces_of_final_df(final_df, steering):
     if config.TAKE_OUT_LOW_THROTTLE:
         final_df = cut_out_low_throttle(final_df)
     if config.EVEN_OUT_LR_STEERING_ANGLES:
-        final_df = even_out_steering_angles(final_df, steering, config.EVEN_BINS)
+        final_df = even_out_steering_angles(final_df, steering)
     if config.TAKE_OUT_NONCENTER_TRANSLATED_IMAGES:
         final_df = take_out_noncenter_translated(final_df)
     if config.TAKE_OUT_TRANSLATED_IMGS:
@@ -223,7 +223,7 @@ def take_out_noncenter_translated(final_df):
     return final_df
 
 
-def even_out_steering_angles(final_df, steering, bins):
+def even_out_steering_angles(final_df, steering):
     """
     The idea behind this is we don't want an uneven distribution,
     aka 25k Left turns and 10k right turns
