@@ -32,7 +32,7 @@ BATCH_SIZE = 500
 # This section is referred to in load_data.py
 #
 ####
-CHECKPOINT_PATH = "models/nvidia_pretrained_extracrop-{epoch:02d}.h5"
+CHECKPOINT_PATH = "models/nvidia_extracrop_even_angles-{epoch:02d}.h5"
 TAKE_OUT_TRANSLATED_IMGS = False
 TAKE_OUT_BRIGHT_IMGS = False
 TAKE_OUT_FLIPPED = False
