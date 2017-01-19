@@ -18,8 +18,8 @@ STEERING_ADJUSTMENT = 1
 AUTONOMOUS_THROTTLE = .2
 # (200, 66) <-- Original NVIDIA Paper
 # (320, 160) <-- Original Comma
-IMAGE_WIDTH = 200
-IMAGE_HEIGHT = 66
+IMAGE_WIDTH = 160
+IMAGE_HEIGHT = 80
 CHANNELS = 3
 LR = 1e-5
 OPTIMIZER = Adam(lr=LR)
@@ -64,7 +64,7 @@ PERTURBED_ANGLE_MIN = .05
 
 
 def full_train(path_full='data/full_driving_log.csv', prev_model=False):
-    new_model = model.steering_net()
+    new_model = model.comma_model()
     if prev_model:
         new_model = model.load_saved_model(prev_model, new_model)
     model.train(model=new_model, path=path_full, checkpoint_path=CHECKPOINT_PATH)
