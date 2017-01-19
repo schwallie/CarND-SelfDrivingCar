@@ -25,7 +25,7 @@ LR = 1e-5
 OPTIMIZER = Adam(lr=LR)
 LOSS = 'mse'
 NB_EPOCH = 20
-BATCH_SIZE = 500
+BATCH_SIZE = 128
 
 ####
 #
