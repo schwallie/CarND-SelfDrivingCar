@@ -266,7 +266,6 @@ def even_out_steering_angles(final_df, steering, bins):
 
 
 def print_data_makeup(final_df, steering):
-    import cufflinks
     pos = final_df[(final_df[steering] > 0)]
     neg = final_df[(final_df[steering] < 0)]
     zero = final_df[final_df[steering] == 0]
