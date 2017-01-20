@@ -26,15 +26,15 @@ CHANNELS = 3
 LR = 1e-5
 OPTIMIZER = Adam(lr=LR)
 LOSS = 'mse'
-NB_EPOCH = 20
-BATCH_SIZE = 200
+NB_EPOCH = 40
+BATCH_SIZE = 128
 
 ####
 #
 # This section is referred to in load_data.py
 #
 ####
-CHECKPOINT_PATH = "models/comma_new_generative_no_trans-{epoch:02d}.h5"
+CHECKPOINT_PATH = "models/comma_new_generative_no_trans_batch_128-{epoch:02d}.h5"
 TAKE_OUT_TRANSLATED_IMGS = True
 TAKE_OUT_BRIGHT_IMGS = True
 TAKE_OUT_FLIPPED = True
