@@ -91,7 +91,7 @@ def train(model, path, checkpoint_path):
     X_validate = [config.return_image(cv2.imread('data/{0}'.format(f.strip()))) for f in X_validate]
     print(model.summary())
     print('X_train samples: {0}'.format(len(X_train)))
-    SAMPLES_PER_EPOCH = math.floor((len(X_train) // config.BATCH_SIZE * config.BATCH_SIZE) / 2)
+    SAMPLES_PER_EPOCH = math.floor((len(X_train) // config.BATCH_SIZE * config.BATCH_SIZE))
     print('Samples Per Epoch: {0}'.format(SAMPLES_PER_EPOCH))
     checkpoint = ModelCheckpoint(checkpoint_path, verbose=1, save_best_only=False, save_weights_only=True, mode='auto')
     model.fit_generator(generate_arrays(X_train, y_train, config.BATCH_SIZE),

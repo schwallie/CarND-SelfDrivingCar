@@ -35,7 +35,7 @@ def telemetry(sid, data):
     steering_angle = float(saved_model.predict(image_array, batch_size=1)) * config.STEERING_ADJUSTMENT
     # The driving model currently just outputs a constant throttle. Feel free to edit this.
     if abs(steering_angle) > .07:
-        throttle = .01
+        throttle = .05
     else:
         throttle = config.AUTONOMOUS_THROTTLE
     if abs(steering_angle) > .07:
