@@ -4,6 +4,8 @@ import cv2
 import numpy as np
 import pandas as pd
 from keras.optimizers import Adam
+from keras.preprocessing.image import img_to_array, load_img
+
 import model
 
 pd.set_option('display.height', 1000)
@@ -34,8 +36,8 @@ BATCH_SIZE = 200
 ####
 CHECKPOINT_PATH = "models/comma_no_trans-{epoch:02d}.h5"
 TAKE_OUT_TRANSLATED_IMGS = True
-TAKE_OUT_BRIGHT_IMGS = False
-TAKE_OUT_FLIPPED = False
+TAKE_OUT_BRIGHT_IMGS = True
+TAKE_OUT_FLIPPED = True
 EVEN_OUT_LR_STEERING_ANGLES = False
 KEEP_ALL_0_STEERING_VALS = True
 KEEP_1_OVER_X_0_STEERING_VALS = 3  # Lower == More kept images at 0 steering
@@ -68,6 +70,24 @@ def full_train(path_full='data/full_driving_log.csv', prev_model=False):
     if prev_model:
         new_model = model.load_saved_model(prev_model, new_model)
     model.train(model=new_model, path=path_full, checkpoint_path=CHECKPOINT_PATH)
+
+
+def get_augmented_row(x, y):
+    steering = y
+    image = load_img("data/{0}".format(x))
+    image = img_to_array(image)
+    flip_prob = np.random.choice([0, 1])
+    if flip_prob == 1:
+        # flip the image and reverse the steering angle
+        steering *= -1
+        image = cv2.flip(image, 1)
+    # Apply brightness augmentation
+    image = augment_brightness_camera_images(image)
+    # Translate the image
+    image, steering = trans_image(image, steering, 150)
+    # Crop, resize and normalize the image
+    image = return_image(image)
+    return image, steering
 
 
 def build_augmented_files(path_orig='data/driving_log.csv',
