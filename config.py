@@ -26,15 +26,15 @@ CHANNELS = 3
 LR = 1e-5
 OPTIMIZER = Adam(lr=LR)
 LOSS = 'mse'
-NB_EPOCH = 40
-BATCH_SIZE = 128
+NB_EPOCH = 60
+BATCH_SIZE = 256
 
 ####
 #
 # This section is referred to in load_data.py
 #
 ####
-CHECKPOINT_PATH = "models/comma_new_generative_no_trans_batch_128-{epoch:02d}.h5"
+CHECKPOINT_PATH = "models/comma_256_batch_some_trans-{epoch:02d}.h5"
 TAKE_OUT_TRANSLATED_IMGS = True
 TAKE_OUT_BRIGHT_IMGS = True
 TAKE_OUT_FLIPPED = True
@@ -72,20 +72,19 @@ def full_train(path_full='data/full_driving_log.csv', prev_model=False):
     model.train(model=new_model, path=path_full, checkpoint_path=CHECKPOINT_PATH)
 
 
-def get_augmented_row(x, y):
+def get_augmented(x, y):
     steering = y
     image = load_img("data/{0}".format(x))
     image = img_to_array(image)
-    flip_prob = np.random.choice([0, 1])
-    if flip_prob == 1:
-        # flip the image and reverse the steering angle
+    flip = np.random.choice([0, 1])
+    if flip == 1:
         steering *= -1
         image = cv2.flip(image, 1)
-    # Apply brightness augmentation
     image = augment_brightness_camera_images(image)
-    # Translate the image
-    # image, steering = trans_image(image, steering, 150)
-    # Crop, resize and normalize the image
+    trans = np.random.random()
+    if trans > .8:
+        # Translate 20% of the images
+        image, steering = trans_image(image, steering, 100)
     image = return_image(image)
     return image, steering
 
