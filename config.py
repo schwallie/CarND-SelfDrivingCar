@@ -34,7 +34,7 @@ BATCH_SIZE = 200
 # This section is referred to in load_data.py
 #
 ####
-CHECKPOINT_PATH = "models/comma_no_trans-{epoch:02d}.h5"
+CHECKPOINT_PATH = "models/comma_new_generative_no_trans-{epoch:02d}.h5"
 TAKE_OUT_TRANSLATED_IMGS = True
 TAKE_OUT_BRIGHT_IMGS = True
 TAKE_OUT_FLIPPED = True
@@ -84,7 +84,7 @@ def get_augmented_row(x, y):
     # Apply brightness augmentation
     image = augment_brightness_camera_images(image)
     # Translate the image
-    image, steering = trans_image(image, steering, 150)
+    # image, steering = trans_image(image, steering, 150)
     # Crop, resize and normalize the image
     image = return_image(image)
     return image, steering
