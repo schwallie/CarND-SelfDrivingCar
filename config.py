@@ -34,7 +34,7 @@ BATCH_SIZE = 256
 # This section is referred to in load_data.py
 #
 ####
-CHECKPOINT_PATH = "models/comma_256_new_adjusts-{epoch:02d}.h5"
+CHECKPOINT_PATH = "models/comma_256_new_adjusts_plus-{epoch:02d}.h5"
 TAKE_OUT_TRANSLATED_IMGS = True
 TAKE_OUT_BRIGHT_IMGS = True
 TAKE_OUT_FLIPPED = True
@@ -61,7 +61,6 @@ R_STEERING_ADJUSTMENT = .25
 # Even out skew on L/R steering angles
 DEL_IMAGES = ['2016_12_01_13_38_02']
 # Keep Perturbed Angles
-PERTURBED_ANGLE = np.random.uniform(-1, 1) / 40
 PERTURBED_ANGLE_MIN = .05
 
 
@@ -76,20 +75,18 @@ def get_augmented(x, y):
     steering = y
     image = load_img("data/{0}".format(x))
     image = img_to_array(image)
-    flip = np.random.choice([0, 1])
-    if flip == 1:
+    image = augment_brightness_camera_images(image)
+    trans = np.random.random()
+    if trans > .3:
         steering *= -1
         image = cv2.flip(image, 1)
     trans = np.random.random()
-    if trans > .2:
-        image = augment_brightness_camera_images(image)
-    trans = np.random.random()
     if trans > .5:
-        # Translate 20% of the images
-        image, steering = trans_image(image, steering, 120)
+        # Translate X0% of the images
+        image, steering = trans_image(image, steering, 150)
     trans = np.random.random()
     if trans > .8:
-        steering += np.random.uniform(-1, 1) / 40
+        steering += np.random.uniform(-1, 1) / 60
     image = return_image(image)
     return image, steering
 
@@ -160,7 +157,7 @@ def add_augment_steering_angles(drive_df):
     begin = len(drive_df)
     # for ix in range(0, 1):
     original = drive_df[abs(drive_df['steering']) > PERTURBED_ANGLE_MIN]
-    original['steering2'] = original.apply(lambda x: x['steering'] + PERTURBED_ANGLE, axis=1)
+    original['steering2'] = original.apply(lambda x: x['steering'] + np.random.uniform(-1, 1) / 40, axis=1)
     del original['steering']
     original = original.rename(columns={'steering2': 'steering'})
     original.index = range(len(drive_df) + 1, len(drive_df) + 1 + len(original))
@@ -176,13 +173,7 @@ def add_flipped_images(drive_df):
     maxidx = max(drive_df.index)
     addition = {}
     for idx, row in drive_df.iterrows():
-        # rnd = np.random.randint(2)
-        # if rnd == 1:
-        # Flip and created a new image
         for path in ['center', 'left', 'right']:
-            """if row['steering'] == 0 and path == 'center':
-                # Flipping 0 steering doesn't make any sense?
-                continue"""
             maxidx += 1
             steer = -row['steering']
             img_path = 'data/{0}'.format(row[path].strip())
@@ -195,7 +186,6 @@ def add_flipped_images(drive_df):
                                 'throttle': row['throttle'],
                                 'speed': row['speed']}
     new_df = pd.DataFrame.from_dict(addition, orient='index')
-    # drive_df = drive_df.append(new_df)
     end = len(drive_df) + len(new_df)
     print('Flipped Images: {0} ({1})'.format(end, end - begin))
     return new_df
@@ -210,7 +200,6 @@ def trans_image(image, steer, trans_range):
     # tr_y = 0
     Trans_M = np.float32([[1, 0, tr_x], [0, 1, tr_y]])
     image_tr = cv2.warpAffine(image, Trans_M, (cols, rows))
-
     return image_tr, steer_ang
 
 
