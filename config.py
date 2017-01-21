@@ -34,7 +34,7 @@ BATCH_SIZE = 256
 # This section is referred to in load_data.py
 #
 ####
-CHECKPOINT_PATH = "models/comma_256_more_samples_per_more_trans_even_data-{epoch:02d}.h5"
+CHECKPOINT_PATH = "models/comma_256_new_adjusts-{epoch:02d}.h5"
 TAKE_OUT_TRANSLATED_IMGS = True
 TAKE_OUT_BRIGHT_IMGS = True
 TAKE_OUT_FLIPPED = True
@@ -56,8 +56,8 @@ TAKE_OUT_LOW_THROTTLE = False
 # Too many vals at 0 steering, need to take some out to prevent driving straight
 CAMERAS_TO_USE = 3  # 1 for Center, 3 for L/R/C
 # Steering adjustmenet for L/R images
-L_STEERING_ADJUSTMENT = .2
-R_STEERING_ADJUSTMENT = .2
+L_STEERING_ADJUSTMENT = .25
+R_STEERING_ADJUSTMENT = .25
 # Even out skew on L/R steering angles
 DEL_IMAGES = ['2016_12_01_13_38_02']
 # Keep Perturbed Angles
@@ -80,13 +80,15 @@ def get_augmented(x, y):
     if flip == 1:
         steering *= -1
         image = cv2.flip(image, 1)
-    image = augment_brightness_camera_images(image)
     trans = np.random.random()
-    if trans > .7:
+    if trans > .2:
+        image = augment_brightness_camera_images(image)
+    trans = np.random.random()
+    if trans > .5:
         # Translate 20% of the images
         image, steering = trans_image(image, steering, 120)
     trans = np.random.random()
-    if trans > .5:
+    if trans > .8:
         steering += np.random.uniform(-1, 1) / 40
     image = return_image(image)
     return image, steering
