@@ -27,14 +27,14 @@ LR = 1e-5
 OPTIMIZER = Adam(lr=LR)
 LOSS = 'mse'
 NB_EPOCH = 60
-BATCH_SIZE = 256
+BATCH_SIZE = 128
 
 ####
 #
 # This section is referred to in load_data.py
 #
 ####
-CHECKPOINT_PATH = "models/comma_256_new_adjusts_plus-{epoch:02d}.h5"
+CHECKPOINT_PATH = "models/comma_128_new_adjusts_plus_more-{epoch:02d}.h5"
 TAKE_OUT_TRANSLATED_IMGS = True
 TAKE_OUT_BRIGHT_IMGS = True
 TAKE_OUT_FLIPPED = True
