@@ -26,7 +26,7 @@ CHANNELS = 3
 LR = 1e-5
 OPTIMIZER = Adam(lr=LR)
 LOSS = 'mse'
-NB_EPOCH = 60
+NB_EPOCH = 10
 BATCH_SIZE = 128
 
 ####
@@ -34,7 +34,7 @@ BATCH_SIZE = 128
 # This section is referred to in load_data.py
 #
 ####
-CHECKPOINT_PATH = "models/comma_128_some_non_adjusted-{epoch:02d}.h5"
+CHECKPOINT_PATH = "fine_tune-{epoch:02d}.h5"
 TAKE_OUT_TRANSLATED_IMGS = True
 TAKE_OUT_BRIGHT_IMGS = True
 TAKE_OUT_FLIPPED = True
@@ -73,7 +73,7 @@ def full_train(path_full='data/full_driving_log.csv', prev_model=False):
 
 def get_augmented(x, y):
     steering = y
-    image = load_img("data/{0}".format(x))
+    image = load_img("{0}".format(x))
     image = img_to_array(image)
     image = augment_brightness_camera_images(image)
     trans = np.random.random()
