@@ -78,7 +78,7 @@ def get_augmented(x, y):
     image = augment_brightness_camera_images(image)
     trans = np.random.random()
     if trans < .2:
-        return image, steering
+        return return_image(image), steering
     trans = np.random.random()
     if trans > .3:
         steering *= -1
