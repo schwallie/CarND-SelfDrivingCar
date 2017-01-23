@@ -1,5 +1,5 @@
 [gifdrive]: https://github.com/schwallie/CarND-SelfDrivingCar/blob/master/assets/GifRecording.gif "Self Driving Car"
-[datahist]:
+[datahist]: https://github.com/schwallie/CarND-SelfDrivingCar/blob/master/assets/DataHist.png "Datahist"
 
 # Overview
 
@@ -26,4 +26,12 @@ Open up the driving simulator program and it should work from there! (The drivin
 
 The data I used was from Udacity, as they had a more stable dataset to work with. I had issues using my keyboard to get realistic images to train the model with.
 
-The main thing I noticed with the data was how little the steering angle
+The main thing I noticed with the data was that on each side of 0 (left or right driving), each bucket isn't totally even. So I wanted to make sure to even out both the sides so the model didn't generalize this and try to go left or right more often than it should.
+
+![datahist][datahist]
+
+
+# Model
+
+I used the model that comma.ai open sourced, but I'm pretty sure the NVIDIA model (also contained in the repo) would work well.
+
