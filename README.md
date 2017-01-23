@@ -1,4 +1,5 @@
 [gifdrive]: https://github.com/schwallie/CarND-SelfDrivingCar/blob/master/assets/GifRecording.gif "Self Driving Car"
+[datahist]:
 
 # Overview
 
@@ -24,3 +25,5 @@ Open up the driving simulator program and it should work from there! (The drivin
 # General data tidbits
 
 The data I used was from Udacity, as they had a more stable dataset to work with. I had issues using my keyboard to get realistic images to train the model with.
+
+The main thing I noticed with the data was how little the steering angle
