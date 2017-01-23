@@ -1,5 +1,6 @@
 [gifdrive]: https://github.com/schwallie/CarND-SelfDrivingCar/blob/master/assets/GifRecording.gif "Self Driving Car"
 [datahist]: https://github.com/schwallie/CarND-SelfDrivingCar/blob/master/assets/DataHist.png "Datahist"
+[model]: https://github.com/schwallie/CarND-SelfDrivingCar/blob/master/assets/Model.png "Model"
 
 # Overview
 
@@ -33,5 +34,7 @@ The main thing I noticed with the data was that on each side of 0 (left or right
 
 # Model
 
-I used the model that comma.ai open sourced, but I'm pretty sure the NVIDIA model (also contained in the repo) would work well.
+I used the model that comma.ai open sourced, but I'm pretty sure the NVIDIA model (also contained in the repo) would work well now that I've figured out augmentations better.
+
+![model][model]
 
