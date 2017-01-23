@@ -66,9 +66,9 @@ I used dropouts between the layers to lower problems with overfitting the model,
 I used the comma.ai model, a batch size of 128, and an AdamOptimizer. I found a lower learning rate to work much better for my model, so that we didn't reach a false minimum error.
 
 Here are my main takeaways from my work:
-1. Do not pre-generate the images. I originally made something that generated the images (translations, flips, etc) and then just read those images for training. This didn't work well. I think it's because I basically did `Original Image * CHOICE([Flip, Translation, Brightness])`, but you need to just do the translations on the fly to really give the model enough images to train on
-2. Consider large numbers of EPOCHS. When using dropouts and translations, I wasn't overly worried about overfitting. My late EPOCH versions worked best
-3. Do all the augmentations above, and make sure it varies. Keep your model guessing/learning
-4. 128 mini-batches worked better for me than anything larger
-5. Ask a lot in Slack and the forums!
+* Do not pre-generate the images. I originally made something that generated the images (translations, flips, etc) and then just read those images for training. This didn't work well. I think it's because I basically did `Original Image * CHOICE([Flip, Translation, Brightness])`, but you need to just do the translations on the fly to really give the model enough images to train on
+* Consider large numbers of EPOCHS. When using dropouts and translations, I wasn't overly worried about overfitting. My late EPOCH versions worked best
+* Do all the augmentations above, and make sure it varies. Keep your model guessing/learning
+* 128 mini-batches worked better for me than anything larger
+* Ask a lot in Slack and the forums!
 
