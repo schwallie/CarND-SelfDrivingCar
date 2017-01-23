@@ -1,6 +1,8 @@
+[gifdrive]: https://github.com/schwallie/CarND-SelfDrivingCar/blob/master/assets/GifRecording.gif "Self Driving Car"
+
 # Overview
 
-![alt text](https://i.imgur.com/wTHwzwp.gifv "It works whaattt")
+![driving car gif][logo]
 
 The [Udacity Self Driving Nanodegree](https://www.udacity.com/course/self-driving-car-engineer-nanodegree--nd013) Term 1 is mostly about Deep Learning using Tensorflow and Keras to build Convolutional Neural Nets (CNNs).
 
