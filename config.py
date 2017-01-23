@@ -35,9 +35,9 @@ BATCH_SIZE = 128
 #
 ####
 CHECKPOINT_PATH = "fine_tune-{epoch:02d}.h5"
-TAKE_OUT_TRANSLATED_IMGS = True
-TAKE_OUT_BRIGHT_IMGS = True
-TAKE_OUT_FLIPPED = True
+TAKE_OUT_TRANSLATED_IMGS = False
+TAKE_OUT_BRIGHT_IMGS = False
+TAKE_OUT_FLIPPED = False
 EVEN_OUT_LR_STEERING_ANGLES = True
 KEEP_ALL_0_STEERING_VALS = True
 KEEP_1_OVER_X_0_STEERING_VALS = 3  # Lower == More kept images at 0 steering
@@ -75,22 +75,26 @@ def get_augmented(x, y):
     steering = y
     image = load_img("{0}".format(x))
     image = img_to_array(image)
+    # Augment brightness so it can handle both night and day
     image = augment_brightness_camera_images(image)
     trans = np.random.random()
     if trans < .2:
+        # 20% of the time, return the original image
         return return_image(image), steering
     trans = np.random.random()
     if trans > .3:
+        # Flip the image around center 70% of the time
         steering *= -1
         image = cv2.flip(image, 1)
     trans = np.random.random()
     if trans > .5:
-        # Translate X0% of the images
+        # Translate 50% of the images
         image, steering = trans_image(image, steering, 150)
     trans = np.random.random()
     if trans > .8:
+        # 20% of the time, add a little jitter to the steering to help with 0 steering angles
         steering += np.random.uniform(-1, 1) / 60
-    image = return_image(image)
+    # image = return_image(image)
     return image, steering
 
 
@@ -266,9 +270,6 @@ def add_brightness_augmented_images(drive_df):
 
 def vis(df=None, rn=None, img_view='img_path', img=None):
     """
-    Bad learning images:
-    IMG/center_2016_12_01_13_38_02_790.jpg
-    3200 - 3205 on full_driving, or IMG/center_2016_12_01_13_38_02_*
     :param df:
     :param rn:
     :param img_view:
@@ -307,6 +308,7 @@ def plot_camera_images(df):
     for ix in ['FLIPPED', 'BRIGHT', 'TRANS', 'left']:
         piece = df[df.img_path.str.contains(ix)]
         rnd = np.random.choice(piece.index, 1)
+        print(piece.loc[rnd]['img_path'].iloc[0].strip())
         images.append([piece.loc[rnd]['steering'],
                        return_image(cv2.imread('data/{0}'.format(piece.loc[rnd]['img_path'].iloc[0].strip()))),
                        piece.loc[rnd]['img_path'].iloc[0].strip()])
@@ -320,22 +322,14 @@ def plot_camera_images(df):
         plt.title("%s, steering %.2f" % (img_path, steering))
 
 
-"""
-Office Hours:
-He used the comma.ai model and these transformations
-
-from img_transformations import translate, brighten_or_darken, cropout_sky_hood
-
-img = Image.open(center_img_filepath)
-img = brighten_or_darken(img, brightness_factor_min=0.25)
-img, steering_angle = translate(img, steering_angle)
-img = cropout_sky_hood(img)
-print('translated steering angle', steering_angle)
-img = img.resize((64, 32))
-plt.imshow(img)
-
-
-as for the bridge part, you can subsample data to remove data with small angles, so the bias for going straight is reduced
-
-
-"""
+def plot_new(df):
+    import matplotlib.pyplot as plt
+    images = np.random.choice(df.index.values, size=4)
+    for ix, image in enumerate(images):
+        plt.subplot(2, 2, ix + 1)
+        x = 'data/{0}'.format(df.loc[ix]['center'])
+        y = df.loc[ix]['steering']
+        img, steering = get_augmented(x, y)
+        plt.imshow(img, aspect='auto')
+        plt.axis('off')
+        plt.title("steering %.2f" % steering)

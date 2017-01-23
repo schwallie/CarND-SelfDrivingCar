@@ -38,3 +38,37 @@ I used the model that comma.ai open sourced, but I'm pretty sure the NVIDIA mode
 
 ![model][model]
 
+
+I used dropouts between the layers to lower problems with overfitting the model, and I also used data augmentation to avoid overfitting. Specifically,
+
+```python
+    # Augment brightness so it can handle both night and day
+    image = augment_brightness_camera_images(image)
+    trans = np.random.random()
+    if trans < .2:
+        # 20% of the time, return the original image
+        return return_image(image), steering
+    trans = np.random.random()
+    if trans > .3:
+        # Flip the image around center 70% of the time
+        steering *= -1
+        image = cv2.flip(image, 1)
+    trans = np.random.random()
+    if trans > .5:
+        # Translate 50% of the images
+        image, steering = trans_image(image, steering, 150)
+    trans = np.random.random()
+    if trans > .8:
+        # 20% of the time, add a little jitter to the steering to help with 0 steering angles
+        steering += np.random.uniform(-1, 1) / 60
+```
+
+I used the comma.ai model, a batch size of 128, and an AdamOptimizer. I found a lower learning rate to work much better for my model, so that we didn't reach a false minimum error.
+
+Here are my main takeaways from my work:
+1. Do not pre-generate the images. I originally made something that generated the images (translations, flips, etc) and then just read those images for training. This didn't work well. I think it's because I basically did `Original Image * CHOICE([Flip, Translation, Brightness])`, but you need to just do the translations on the fly to really give the model enough images to train on
+2. Consider large numbers of EPOCHS. When using dropouts and translations, I wasn't overly worried about overfitting. My late EPOCH versions worked best
+3. Do all the augmentations above, and make sure it varies. Keep your model guessing/learning
+4. 128 mini-batches worked better for me than anything larger
+5. Ask a lot in Slack and the forums!
+
