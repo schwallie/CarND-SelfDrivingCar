@@ -2,7 +2,7 @@
 
 # Overview
 
-![driving car gif][logo]
+![driving car gif][gifdrive]
 
 The [Udacity Self Driving Nanodegree](https://www.udacity.com/course/self-driving-car-engineer-nanodegree--nd013) Term 1 is mostly about Deep Learning using Tensorflow and Keras to build Convolutional Neural Nets (CNNs).
 
